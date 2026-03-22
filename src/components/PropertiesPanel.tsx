@@ -119,13 +119,67 @@ export function PropertiesPanel() {
           </div>
 
           {/* Size */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Scale: {(element.size.scale || 1).toFixed(1)}x</Label>
-            <Slider
-              value={[element.size.scale || 1]}
-              min={0.2} max={5} step={0.1}
-              onValueChange={([v]) => update({ size: { ...element.size, scale: v } })}
-            />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Size</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => update({ size: { ...element.size, lockAspectRatio: !element.size.lockAspectRatio } })}
+                title={element.size.lockAspectRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+              >
+                {element.size.lockAspectRatio ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Width %</Label>
+                <Input
+                  type="number" min={0.5} max={100} step={0.5}
+                  value={element.size.widthPct || 5}
+                  onChange={e => {
+                    const w = Number(e.target.value);
+                    const ratio = (element.size.widthPct || 5) / (element.size.heightPct || element.size.widthPct || 5);
+                    update({
+                      size: {
+                        ...element.size,
+                        widthPct: w,
+                        ...(element.size.lockAspectRatio ? { heightPct: w / ratio } : {}),
+                      },
+                    });
+                  }}
+                  className="h-8 text-xs bg-secondary font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Height %</Label>
+                <Input
+                  type="number" min={0.5} max={100} step={0.5}
+                  value={element.size.heightPct || element.size.widthPct || 5}
+                  onChange={e => {
+                    const h = Number(e.target.value);
+                    const ratio = (element.size.widthPct || 5) / (element.size.heightPct || element.size.widthPct || 5);
+                    update({
+                      size: {
+                        ...element.size,
+                        heightPct: h,
+                        ...(element.size.lockAspectRatio ? { widthPct: h * ratio } : {}),
+                      },
+                    });
+                  }}
+                  className="h-8 text-xs bg-secondary font-mono"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Scale: {(element.size.scale || 1).toFixed(1)}x</Label>
+              <Slider
+                value={[element.size.scale || 1]}
+                min={0.2} max={5} step={0.1}
+                onValueChange={([v]) => update({ size: { ...element.size, scale: v } })}
+              />
+            </div>
           </div>
 
           {/* Rotation */}
