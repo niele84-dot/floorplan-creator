@@ -278,6 +278,7 @@ export function CanvasEditor() {
                       zIndex: el.zIndex,
                       width: el.size.widthPct ? `${el.size.widthPct}%` : 'auto',
                       height: el.size.heightPct ? `${el.size.heightPct}%` : 'auto',
+                    }}
                     onMouseDown={e => handleElementMouseDown(e, el)}
                   >
                     <div className="flex items-center justify-center min-w-[24px] min-h-[24px] p-1">
