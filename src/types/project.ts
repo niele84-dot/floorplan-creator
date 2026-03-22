@@ -31,7 +31,7 @@ export interface FloorplanElement {
   id: string;
   type: ElementType;
   position: { leftPct: number; topPct: number };
-  size: { widthPct?: number; scale?: number };
+  size: { widthPct?: number; heightPct?: number; scale?: number; lockAspectRatio?: boolean };
   rotationDeg: number;
   zIndex: number;
   ha: HAConfig;

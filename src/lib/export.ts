@@ -147,18 +147,21 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
     zip.file(`www/floorplan/${project.backgroundImage.filename}`, bgData, { base64: true });
   }
 
-  // Download all icon assets (both mdi and non-mdi)
+  // Download only non-HA-native icon assets (skip mdi/mdi-light, which HA renders natively)
+  const HA_NATIVE_SETS = new Set(['mdi', 'mdi-light']);
   const iconSets = new Set<string>();
   for (const el of project.elements) {
     if (el.iconSetId && el.iconName) {
       iconSets.add(el.iconSetId);
-      const filename = `${el.iconSetId}-${el.iconName}.svg`;
-      try {
-        const resp = await fetch(`https://api.iconify.design/${el.iconSetId}/${el.iconName}.svg`);
-        const svg = await resp.text();
-        zip.file(`www/floorplan/icons/${filename}`, svg);
-      } catch {
-        // skip failed downloads
+      if (!HA_NATIVE_SETS.has(el.iconSetId)) {
+        const filename = `${el.iconSetId}-${el.iconName}.svg`;
+        try {
+          const resp = await fetch(`https://api.iconify.design/${el.iconSetId}/${el.iconName}.svg`);
+          const svg = await resp.text();
+          zip.file(`www/floorplan/icons/${filename}`, svg);
+        } catch {
+          // skip failed downloads
+        }
       }
     }
   }

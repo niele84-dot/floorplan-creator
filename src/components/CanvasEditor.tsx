@@ -277,6 +277,7 @@ export function CanvasEditor() {
                       transform: `translate(-50%, -50%) rotate(${el.rotationDeg}deg) scale(${el.size.scale || 1})`,
                       zIndex: el.zIndex,
                       width: el.size.widthPct ? `${el.size.widthPct}%` : 'auto',
+                      height: el.size.heightPct ? `${el.size.heightPct}%` : 'auto',
                     }}
                     onMouseDown={e => handleElementMouseDown(e, el)}
                   >
