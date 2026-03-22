@@ -1,0 +1,57 @@
+export type ElementType = 'state-icon' | 'state-label' | 'icon' | 'image' | 'action-button' | 'conditional';
+
+export interface TapAction {
+  action: 'toggle' | 'more-info' | 'navigate' | 'perform-action' | 'none' | 'call-service';
+  navigation_path?: string;
+  service?: string;
+  service_data?: Record<string, unknown>;
+}
+
+export interface Condition {
+  entity: string;
+  state: string;
+  state_not?: string;
+}
+
+export interface HAConfig {
+  entity?: string;
+  icon?: string;
+  image?: string;
+  title?: string;
+  attribute?: string;
+  prefix?: string;
+  suffix?: string;
+  tap_action?: TapAction;
+  hold_action?: TapAction;
+  double_tap_action?: TapAction;
+  conditions?: Condition[];
+}
+
+export interface FloorplanElement {
+  id: string;
+  type: ElementType;
+  position: { leftPct: number; topPct: number };
+  size: { widthPct?: number; scale?: number };
+  rotationDeg: number;
+  zIndex: number;
+  ha: HAConfig;
+  assetRef?: string;
+  iconSetId?: string;
+  iconName?: string;
+  label?: string;
+}
+
+export interface BackgroundImage {
+  filename: string;
+  originalWidth: number;
+  originalHeight: number;
+  dataUrl: string;
+}
+
+export interface FloorplanProject {
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  backgroundImage: BackgroundImage | null;
+  elements: FloorplanElement[];
+}
