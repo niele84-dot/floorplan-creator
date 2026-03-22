@@ -147,15 +147,16 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
     zip.file(`www/floorplan/${project.backgroundImage.filename}`, bgData, { base64: true });
   }
 
-  // Download non-mdi icon assets
+  // Download all icon assets (both mdi and non-mdi)
   const iconSets = new Set<string>();
   for (const el of project.elements) {
-    if (el.assetRef && el.iconSetId && el.iconName) {
+    if (el.iconSetId && el.iconName) {
       iconSets.add(el.iconSetId);
+      const filename = `${el.iconSetId}-${el.iconName}.svg`;
       try {
         const resp = await fetch(`https://api.iconify.design/${el.iconSetId}/${el.iconName}.svg`);
         const svg = await resp.text();
-        zip.file(`www/floorplan/icons/${el.assetRef}`, svg);
+        zip.file(`www/floorplan/icons/${filename}`, svg);
       } catch {
         // skip failed downloads
       }
