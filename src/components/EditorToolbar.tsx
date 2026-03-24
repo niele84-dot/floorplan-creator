@@ -4,10 +4,15 @@ import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function EditorToolbar() {
+interface EditorToolbarProps {
+  onToggleYaml?: () => void;
+  showYaml?: boolean;
+}
+
+export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
