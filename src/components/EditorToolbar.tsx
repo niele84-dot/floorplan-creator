@@ -16,6 +16,8 @@ interface EditorToolbarProps {
 export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = async () => {
     try {
