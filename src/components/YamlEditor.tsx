@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { generateYAML } from '@/lib/export';
+import { parseYAMLToElements } from '@/lib/yaml-parser';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Code, Copy, Check, AlertTriangle } from 'lucide-react';
+import { Code, Copy, Check, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import jsYaml from 'js-yaml';
 import { toast } from 'sonner';
 
@@ -30,7 +30,7 @@ export function YamlEditor() {
     try {
       jsYaml.load(value);
     } catch (e: any) {
-      setError(e.message?.split('\n')[0] || 'Invalid YAML');
+      setError(e.message?.split('\n')[0] || 'YAML non valido');
     }
   };
 
@@ -38,6 +38,24 @@ export function YamlEditor() {
     setYaml(generated);
     setEdited(false);
     setError(null);
+  };
+
+  const handleApply = () => {
+    try {
+      const parsed = jsYaml.load(yaml) as any;
+      if (!parsed || !parsed.elements) {
+        setError('YAML deve contenere "elements"');
+        return;
+      }
+
+      const elements = parseYAMLToElements(parsed.elements, project.elements);
+      dispatch({ type: 'SET_ELEMENTS', elements });
+      setEdited(false);
+      setError(null);
+      toast.success(`Progetto aggiornato: ${elements.length} elementi`);
+    } catch (e: any) {
+      setError(e.message || 'Errore nel parsing del YAML');
+    }
   };
 
   const handleCopy = useCallback(() => {
@@ -60,9 +78,21 @@ export function YamlEditor() {
             {copied ? 'Copiato' : 'Copia'}
           </Button>
           {edited && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleReset}>
-              Reset
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={handleApply}
+                disabled={!!error}
+              >
+                <CheckCircle2 className="h-3 w-3" />
+                Applica
+              </Button>
+            </>
           )}
         </div>
       </div>
