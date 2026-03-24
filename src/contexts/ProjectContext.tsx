@@ -98,6 +98,8 @@ function projectReducer(state: State, action: Action): State {
     }
     case 'SET_NAME':
       return pushHistory({ ...state.project, name: action.name });
+    case 'SET_ELEMENTS':
+      return pushHistory({ ...state.project, elements: action.elements });
     case 'UNDO': {
       if (state.historyIndex <= 0) return state;
       const newIdx = state.historyIndex - 1;
