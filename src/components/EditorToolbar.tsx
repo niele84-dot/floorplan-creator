@@ -4,10 +4,15 @@ import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function EditorToolbar() {
+interface EditorToolbarProps {
+  onToggleYaml?: () => void;
+  showYaml?: boolean;
+}
+
+export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,6 +83,15 @@ export function EditorToolbar() {
 
         <Button variant="ghost" size="sm" onClick={handleSaveJSON} className="h-8 gap-1 text-xs">
           <FileDown className="h-3.5 w-3.5" /> Save JSON
+        </Button>
+
+        <Button
+          variant={showYaml ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={onToggleYaml}
+          className="h-8 gap-1 text-xs"
+        >
+          <Code className="h-3.5 w-3.5" /> YAML
         </Button>
 
         <Button variant="default" size="sm" onClick={handleExport} className="h-8 gap-1 text-xs">

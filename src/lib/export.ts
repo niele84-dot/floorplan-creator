@@ -49,7 +49,8 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
   if (el.ha.prefix) lines.push(`${indent}  prefix: "${el.ha.prefix}"`);
   if (el.ha.suffix) lines.push(`${indent}  suffix: "${el.ha.suffix}"`);
 
-  if (el.ha.tap_action && el.ha.tap_action.action !== 'none') {
+  // Always emit tap_action if present
+  if (el.ha.tap_action) {
     lines.push(`${indent}  tap_action:`);
     lines.push(`${indent}    action: ${el.ha.tap_action.action}`);
     if (el.ha.tap_action.navigation_path) {
@@ -57,6 +58,12 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
     }
     if (el.ha.tap_action.service) {
       lines.push(`${indent}    service: ${el.ha.tap_action.service}`);
+    }
+    if (el.ha.tap_action.service_data) {
+      lines.push(`${indent}    service_data:`);
+      for (const [key, val] of Object.entries(el.ha.tap_action.service_data)) {
+        lines.push(`${indent}      ${key}: ${JSON.stringify(val)}`);
+      }
     }
   }
 

@@ -22,6 +22,7 @@ const TAP_ACTIONS: { value: string; label: string }[] = [
   { value: 'toggle', label: 'Toggle' },
   { value: 'more-info', label: 'More Info' },
   { value: 'navigate', label: 'Navigate' },
+  { value: 'call-service', label: 'Call Service' },
   { value: 'perform-action', label: 'Perform Action' },
   { value: 'none', label: 'None' },
 ];
