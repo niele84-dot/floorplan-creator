@@ -85,6 +85,15 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <FileDown className="h-3.5 w-3.5" /> Save JSON
         </Button>
 
+        <Button
+          variant={showYaml ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={onToggleYaml}
+          className="h-8 gap-1 text-xs"
+        >
+          <Code className="h-3.5 w-3.5" /> YAML
+        </Button>
+
         <Button variant="default" size="sm" onClick={handleExport} className="h-8 gap-1 text-xs">
           <Download className="h-3.5 w-3.5" /> Export ZIP
         </Button>
