@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
