@@ -87,6 +87,10 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <FileDown className="h-3.5 w-3.5" /> Save JSON
         </Button>
 
+        <Button variant="ghost" size="sm" onClick={() => setImportOpen(true)} className="h-8 gap-1 text-xs">
+          <ClipboardPaste className="h-3.5 w-3.5" /> Importa YAML
+        </Button>
+
         <Button
           variant={showYaml ? 'secondary' : 'ghost'}
           size="sm"
@@ -100,6 +104,7 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <Download className="h-3.5 w-3.5" /> Export ZIP
         </Button>
       </div>
+      <ImportYamlDialog open={importOpen} onOpenChange={setImportOpen} />
     </header>
   );
 }
