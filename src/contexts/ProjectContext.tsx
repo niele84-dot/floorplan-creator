@@ -20,6 +20,7 @@ type Action =
   | { type: 'DUPLICATE_ELEMENT'; id: string }
   | { type: 'REORDER_ELEMENT'; id: string; direction: 'forward' | 'backward' }
   | { type: 'SET_NAME'; name: string }
+  | { type: 'SET_ELEMENTS'; elements: FloorplanElement[] }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
