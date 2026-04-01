@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { FloorplanProject, FloorplanElement } from '@/types/project';
+import { FloorplanProject, FloorplanElement, Room } from '@/types/project';
 
 const ICON_SET_LICENSES: Record<string, string> = {
   mdi: 'Material Design Icons - Apache License 2.0 - https://github.com/Templarian/MaterialDesign',
@@ -26,7 +26,6 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
       }
     }
     lines.push(`${indent}  elements:`);
-    // Nested element
     const nestedType = el.ha.icon ? 'state-icon' : 'image';
     lines.push(`${indent}    - type: ${nestedType}`);
     if (el.ha.entity) lines.push(`${indent}      entity: ${el.ha.entity}`);
@@ -49,7 +48,6 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
   if (el.ha.prefix) lines.push(`${indent}  prefix: "${el.ha.prefix}"`);
   if (el.ha.suffix) lines.push(`${indent}  suffix: "${el.ha.suffix}"`);
 
-  // Always emit tap_action if present
   if (el.ha.tap_action) {
     lines.push(`${indent}  tap_action:`);
     lines.push(`${indent}    action: ${el.ha.tap_action.action}`);
@@ -76,6 +74,30 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
   return lines.join('\n');
 }
 
+function generateRoomOverlayYAML(room: Room, indent: string): string {
+  const slug = room.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+  const lines: string[] = [];
+
+  lines.push(`${indent}# --- Room: ${room.name} ---`);
+  lines.push(`${indent}- type: image`);
+  lines.push(`${indent}  entity: ${room.entity || 'light.change_me'}`);
+  lines.push(`${indent}  image: /local/floorplan/overlays/${slug}_glow.png`);
+  lines.push(`${indent}  state_filter:`);
+  lines.push(`${indent}    "on": opacity(0.75)`);
+  lines.push(`${indent}    "off": opacity(0)`);
+  lines.push(`${indent}    "unavailable": opacity(0.15)`);
+  lines.push(`${indent}  tap_action:`);
+  lines.push(`${indent}    action: toggle`);
+  lines.push(`${indent}  style:`);
+  lines.push(`${indent}    top: "50%"`);
+  lines.push(`${indent}    left: "50%"`);
+  lines.push(`${indent}    width: "100%"`);
+  lines.push(`${indent}    mix-blend-mode: screen`);
+  lines.push(`${indent}    pointer-events: auto`);
+
+  return lines.join('\n');
+}
+
 export function generateYAML(project: FloorplanProject): string {
   if (!project.backgroundImage) return '# No background image set';
 
@@ -85,6 +107,13 @@ export function generateYAML(project: FloorplanProject): string {
     'elements:',
   ];
 
+  // Room overlays first (render below icons)
+  const rooms = project.rooms || [];
+  for (const room of rooms) {
+    lines.push(generateRoomOverlayYAML(room, '  '));
+  }
+
+  // Then elements
   for (const el of project.elements) {
     lines.push(generateElementYAML(el, '  '));
   }
@@ -92,7 +121,49 @@ export function generateYAML(project: FloorplanProject): string {
   return lines.join('\n');
 }
 
+/**
+ * Generate a transparent PNG overlay for a room polygon.
+ * Draws on an offscreen canvas matching the background image dimensions.
+ */
+function generateRoomOverlayPNG(
+  room: Room,
+  bgWidth: number,
+  bgHeight: number,
+): string {
+  const canvas = document.createElement('canvas');
+  canvas.width = bgWidth;
+  canvas.height = bgHeight;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.clearRect(0, 0, bgWidth, bgHeight);
+
+  // Draw the polygon filled with the room's glow color
+  ctx.beginPath();
+  room.polygon.forEach((pt, i) => {
+    const x = (pt.leftPct / 100) * bgWidth;
+    const y = (pt.topPct / 100) * bgHeight;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+
+  // Parse hex color and create a warm glow fill
+  const color = room.overlayColor || '#FFA500';
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  return canvas.toDataURL('image/png');
+}
+
 function generateReadme(project: FloorplanProject): string {
+  const rooms = project.rooms || [];
+  const roomSection = rooms.length > 0
+    ? `\n## Room Overlays\n\n${rooms.map(r => {
+        const slug = r.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+        return `- **${r.name}**: \`/local/floorplan/overlays/${slug}_glow.png\` → entity: \`${r.entity || 'light.change_me'}\``;
+      }).join('\n')}\n`
+    : '';
+
   return `# ${project.name} — Home Assistant Floorplan
 
 ## Quick Setup
@@ -104,6 +175,7 @@ Copy the contents of the \`www/\` folder to your Home Assistant config directory
 \`\`\`
 <HA config>/www/floorplan/${project.backgroundImage?.filename || 'background.png'}
 <HA config>/www/floorplan/icons/   (if any custom icons)
+<HA config>/www/floorplan/overlays/ (room glow overlays)
 \`\`\`
 
 Files placed under \`<HA config>/www/\` are accessible at \`/local/\` in Lovelace.
@@ -122,13 +194,14 @@ Files placed under \`<HA config>/www/\` are accessible at \`/local/\` in Lovelac
 - Make sure all entity IDs match your actual entities
 - Check that images load (no broken icons)
 - Coordinates are in percentages — you can fine-tune \`top\` and \`left\` values directly in YAML
-
+${roomSection}
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | Missing background image | Verify file is at \`www/floorplan/${project.backgroundImage?.filename}\` and restart HA |
 | Icons not showing | Check \`www/floorplan/icons/\` folder exists with SVG files |
+| Room overlay not visible | Check \`www/floorplan/overlays/\` has the glow PNGs |
 | Wrong entity | Update \`entity:\` in the YAML to match your setup |
 | Card not updating | Clear browser cache or hard-refresh (Ctrl+Shift+R) |
 | Image path 404 | Paths must start with \`/local/\` (maps to \`www/\`) |
@@ -137,6 +210,7 @@ Files placed under \`<HA config>/www/\` are accessible at \`/local/\` in Lovelac
 
 - Created: ${project.createdAt}
 - Elements: ${project.elements.length}
+- Rooms: ${rooms.length}
 - Background: ${project.backgroundImage?.filename || 'none'} (${project.backgroundImage?.originalWidth}x${project.backgroundImage?.originalHeight})
 
 ## Re-editing
@@ -154,7 +228,23 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
     zip.file(`www/floorplan/${project.backgroundImage.filename}`, bgData, { base64: true });
   }
 
-  // Download only non-HA-native icon assets (skip mdi/mdi-light, which HA renders natively)
+  // Room overlay PNGs
+  const rooms = project.rooms || [];
+  if (rooms.length > 0 && project.backgroundImage) {
+    for (const room of rooms) {
+      if (room.polygon.length < 3) continue;
+      const slug = room.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+      const pngDataUrl = generateRoomOverlayPNG(
+        room,
+        project.backgroundImage.originalWidth,
+        project.backgroundImage.originalHeight,
+      );
+      const pngBase64 = pngDataUrl.split(',')[1];
+      zip.file(`www/floorplan/overlays/${slug}_glow.png`, pngBase64, { base64: true });
+    }
+  }
+
+  // Download non-HA-native icon assets
   const HA_NATIVE_SETS = new Set(['mdi', 'mdi-light']);
   const iconSets = new Set<string>();
   for (const el of project.elements) {
@@ -166,9 +256,7 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
           const resp = await fetch(`https://api.iconify.design/${el.iconSetId}/${el.iconName}.svg`);
           const svg = await resp.text();
           zip.file(`www/floorplan/icons/${filename}`, svg);
-        } catch {
-          // skip failed downloads
-        }
+        } catch { /* skip */ }
       }
     }
   }
@@ -188,7 +276,6 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
     for (const setId of iconSets) {
       licenseLines.push(ICON_SET_LICENSES[setId] || `${setId} - Unknown license`);
     }
-    // Always include MDI if any mdi icons used
     const hasMdi = project.elements.some(el => el.ha.icon?.startsWith('mdi:'));
     if (hasMdi && !iconSets.has('mdi')) {
       licenseLines.push(ICON_SET_LICENSES['mdi']);
