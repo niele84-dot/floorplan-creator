@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
-import { FloorplanProject, FloorplanElement, BackgroundImage } from '@/types/project';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { FloorplanProject, FloorplanElement, BackgroundImage, Room } from '@/types/project';
 
 const STORAGE_KEY = 'ha-floorplan-project';
 
@@ -9,6 +9,7 @@ const defaultProject: FloorplanProject = {
   updatedAt: new Date().toISOString(),
   backgroundImage: null,
   elements: [],
+  rooms: [],
 };
 
 type Action =
@@ -21,6 +22,9 @@ type Action =
   | { type: 'REORDER_ELEMENT'; id: string; direction: 'forward' | 'backward' }
   | { type: 'SET_NAME'; name: string }
   | { type: 'SET_ELEMENTS'; elements: FloorplanElement[] }
+  | { type: 'ADD_ROOM'; room: Room }
+  | { type: 'UPDATE_ROOM'; id: string; changes: Partial<Room> }
+  | { type: 'DELETE_ROOM'; id: string }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
@@ -46,9 +50,10 @@ function projectReducer(state: State, action: Action): State {
 
   switch (action.type) {
     case 'SET_PROJECT': {
+      const proj = { ...action.project, rooms: action.project.rooms || [] };
       return {
-        project: action.project,
-        history: [action.project],
+        project: proj,
+        history: [proj],
         historyIndex: 0,
         selectedElementId: null,
       };
@@ -72,6 +77,10 @@ function projectReducer(state: State, action: Action): State {
         ...pushHistory({
           ...state.project,
           elements: state.project.elements.filter(el => el.id !== action.id),
+          // Unlink rooms that referenced this element
+          rooms: (state.project.rooms || []).map(r =>
+            r.linkedElementId === action.id ? { ...r, linkedElementId: null } : r
+          ),
         }),
         selectedElementId: state.selectedElementId === action.id ? null : state.selectedElementId,
       };
@@ -100,6 +109,23 @@ function projectReducer(state: State, action: Action): State {
       return pushHistory({ ...state.project, name: action.name });
     case 'SET_ELEMENTS':
       return pushHistory({ ...state.project, elements: action.elements });
+    case 'ADD_ROOM':
+      return pushHistory({
+        ...state.project,
+        rooms: [...(state.project.rooms || []), action.room],
+      });
+    case 'UPDATE_ROOM':
+      return pushHistory({
+        ...state.project,
+        rooms: (state.project.rooms || []).map(r =>
+          r.id === action.id ? { ...r, ...action.changes } : r
+        ),
+      });
+    case 'DELETE_ROOM':
+      return pushHistory({
+        ...state.project,
+        rooms: (state.project.rooms || []).filter(r => r.id !== action.id),
+      });
     case 'UNDO': {
       if (state.historyIndex <= 0) return state;
       const newIdx = state.historyIndex - 1;
@@ -132,6 +158,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const project = JSON.parse(saved) as FloorplanProject;
+        project.rooms = project.rooms || [];
         return { project, history: [project], historyIndex: 0, selectedElementId: null };
       }
     } catch { /* ignore */ }

@@ -41,6 +41,21 @@ export interface FloorplanElement {
   label?: string;
 }
 
+export interface RoomPoint {
+  leftPct: number;
+  topPct: number;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  polygon: RoomPoint[];
+  linkedElementId: string | null;
+  entity: string;
+  overlayColor: string; // hex color for the glow
+  zIndex: number;
+}
+
 export interface BackgroundImage {
   filename: string;
   originalWidth: number;
@@ -54,4 +69,5 @@ export interface FloorplanProject {
   updatedAt: string;
   backgroundImage: BackgroundImage | null;
   elements: FloorplanElement[];
+  rooms: Room[];
 }
