@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
-import { generateYAML } from '@/lib/export';
+import { generateYAML, parseRoomComments } from '@/lib/export';
 import { parseYAMLToElements } from '@/lib/yaml-parser';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
