@@ -50,7 +50,19 @@ export function ImportYamlDialog({ open, onOpenChange }: ImportYamlDialogProps) 
 
       const elements = parseYAMLToElements(elementsArray, project.elements);
       dispatch({ type: 'SET_ELEMENTS', elements });
-      toast.success(`Importati ${elements.length} elementi da YAML`);
+
+      // Parse room comments from raw YAML
+      const rooms = parseRoomComments(yaml);
+      if (rooms.length > 0) {
+        for (const existingRoom of (project.rooms || [])) {
+          dispatch({ type: 'DELETE_ROOM', id: existingRoom.id });
+        }
+        for (const room of rooms) {
+          dispatch({ type: 'ADD_ROOM', room });
+        }
+      }
+
+      toast.success(`Importati ${elements.length} elementi e ${rooms.length} stanze da YAML`);
       setYaml('');
       setError(null);
       onOpenChange(false);
