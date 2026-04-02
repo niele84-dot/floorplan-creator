@@ -6,6 +6,7 @@ import { PropertiesPanel } from '@/components/PropertiesPanel';
 import { RoomPropertiesPanel } from '@/components/RoomPropertiesPanel';
 import { EditorToolbar } from '@/components/EditorToolbar';
 import { YamlEditor } from '@/components/YamlEditor';
+import { LayerPanel } from '@/components/LayerPanel';
 import { useProject } from '@/contexts/ProjectContext';
 
 function EditorLayout() {
@@ -26,6 +27,10 @@ function EditorLayout() {
         <div className="w-64 flex-shrink-0">
           <IconPicker />
         </div>
+        <LayerPanel
+          selectedRoomId={selectedRoomId}
+          setSelectedRoomId={setSelectedRoomId}
+        />
         <CanvasEditor
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}

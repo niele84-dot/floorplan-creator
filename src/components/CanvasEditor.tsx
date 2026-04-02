@@ -440,7 +440,7 @@ export function CanvasEditor({
               )}
 
               {/* Room overlays SVG layer — below icons */}
-              <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+              <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: drawingMode ? 'none' : 'auto' }}>
                 {rooms.map(room => (
                   <RoomOverlay
                     key={room.id}
