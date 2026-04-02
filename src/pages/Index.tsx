@@ -27,6 +27,10 @@ function EditorLayout() {
         <div className="w-64 flex-shrink-0">
           <IconPicker />
         </div>
+        <LayerPanel
+          selectedRoomId={selectedRoomId}
+          setSelectedRoomId={setSelectedRoomId}
+        />
         <CanvasEditor
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
