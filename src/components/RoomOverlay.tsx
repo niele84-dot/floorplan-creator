@@ -55,13 +55,14 @@ export function RoomOverlay({
       <polygon
         points={points}
         fill={room.overlayColor || '#FFA500'}
-        fillOpacity={isSelected ? 0.35 : 0.2}
+        fillOpacity={isSelected ? 0.55 : 0.35}
         stroke={isSelected ? 'hsl(var(--primary))' : isLinkTarget ? '#22d3ee' : room.overlayColor || '#FFA500'}
-        strokeWidth={isSelected ? 2 : 1}
+        strokeWidth={isSelected ? 2.5 : 1.5}
         strokeDasharray={isLinkTarget ? '6 3' : undefined}
         className="cursor-pointer"
         style={{ pointerEvents: 'all' }}
-        onClick={(e) => { e.stopPropagation(); onSelect(); }}
+        onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}
+        onClick={(e) => { e.stopPropagation(); }}
       />
       {/* Room name label */}
       <foreignObject

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Link, Unlink, Plus, X } from 'lucide-react';
+import { Trash2, Link, Unlink, Info } from 'lucide-react';
 
 interface RoomPropertiesPanelProps {
   room: Room;
@@ -22,6 +22,10 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
   const linkedElement = room.linkedElementId
     ? project.elements.find(el => el.id === room.linkedElementId)
     : null;
+
+  // Resolved entity: from linked icon or from room's own entity
+  const resolvedEntity = linkedElement?.ha.entity || room.entity;
+  const resolvedTapAction = linkedElement?.ha.tap_action || undefined;
 
   return (
     <div className="w-72 bg-card border-l border-border flex flex-col">
@@ -50,16 +54,73 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
             />
           </div>
 
-          {/* Entity */}
+          {/* Linked Icon */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Entity ID</Label>
-            <Input
-              value={room.entity}
-              onChange={e => update({ entity: e.target.value })}
-              placeholder="light.bedroom"
-              className="h-8 text-xs bg-secondary font-mono"
-            />
+            <Label className="text-xs text-muted-foreground">Icona Collegata</Label>
+            {linkedElement ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-2 bg-secondary rounded text-xs">
+                  <Link className="h-3 w-3 text-primary flex-shrink-0" />
+                  <span className="flex-1 truncate font-mono">
+                    {linkedElement.ha.entity || linkedElement.ha.icon || linkedElement.label || linkedElement.id.slice(0, 8)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 w-5 p-0"
+                    onClick={() => update({ linkedElementId: null })}
+                  >
+                    <Unlink className="h-3 w-3" />
+                  </Button>
+                </div>
+                {/* Inherited properties info */}
+                <div className="p-2 bg-primary/5 border border-primary/20 rounded space-y-1">
+                  <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                    <Info className="h-3 w-3" />
+                    Proprietà ereditate
+                  </div>
+                  {linkedElement.ha.entity && (
+                    <div className="text-xs text-muted-foreground">
+                      Entity: <span className="font-mono text-foreground">{linkedElement.ha.entity}</span>
+                    </div>
+                  )}
+                  {linkedElement.ha.icon && (
+                    <div className="text-xs text-muted-foreground">
+                      Icona: <span className="font-mono text-foreground">{linkedElement.ha.icon}</span>
+                    </div>
+                  )}
+                  {resolvedTapAction && (
+                    <div className="text-xs text-muted-foreground">
+                      Tap: <span className="font-mono text-foreground">{resolvedTapAction.action}</span>
+                      {resolvedTapAction.service && <> → {resolvedTapAction.service}</>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs gap-1"
+                onClick={onStartLink}
+              >
+                <Link className="h-3 w-3" /> Collega a un'icona
+              </Button>
+            )}
           </div>
+
+          {/* Entity - only editable when NOT linked */}
+          {!linkedElement && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Entity ID (manuale)</Label>
+              <Input
+                value={room.entity}
+                onChange={e => update({ entity: e.target.value })}
+                placeholder="light.bedroom"
+                className="h-8 text-xs bg-secondary font-mono"
+              />
+            </div>
+          )}
 
           {/* Overlay Color */}
           <div className="space-y-1.5">
@@ -91,40 +152,12 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
             />
           </div>
 
-          {/* Linked Icon */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Icona Collegata</Label>
-            {linkedElement ? (
-              <div className="flex items-center gap-2 p-2 bg-secondary rounded text-xs">
-                <Link className="h-3 w-3 text-primary flex-shrink-0" />
-                <span className="flex-1 truncate font-mono">
-                  {linkedElement.ha.entity || linkedElement.ha.icon || linkedElement.label || linkedElement.id.slice(0, 8)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0"
-                  onClick={() => update({ linkedElementId: null })}
-                >
-                  <Unlink className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full h-8 text-xs gap-1"
-                onClick={onStartLink}
-              >
-                <Link className="h-3 w-3" /> Collega a un'icona
-              </Button>
-            )}
-          </div>
-
           {/* Vertices count */}
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Vertici</Label>
-            <p className="text-xs text-muted-foreground">{room.polygon.length} punti</p>
+            <p className="text-xs text-muted-foreground">
+              {room.polygon.length} punti — seleziona e trascina i vertici sul canvas per modificarli
+            </p>
           </div>
         </div>
       </ScrollArea>
