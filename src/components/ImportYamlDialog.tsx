@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangle, Upload } from 'lucide-react';
 import jsYaml from 'js-yaml';
 import { parseYAMLToElements } from '@/lib/yaml-parser';
+import { parseRoomComments } from '@/lib/export';
 import { useProject } from '@/contexts/ProjectContext';
 import { toast } from 'sonner';
 
