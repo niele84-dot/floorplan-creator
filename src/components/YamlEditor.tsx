@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
-import { generateYAML } from '@/lib/export';
+import { generateYAML, parseRoomComments } from '@/lib/export';
 import { parseYAMLToElements } from '@/lib/yaml-parser';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -50,9 +50,22 @@ export function YamlEditor() {
 
       const elements = parseYAMLToElements(parsed.elements, project.elements);
       dispatch({ type: 'SET_ELEMENTS', elements });
+
+      // Parse room comments from raw YAML
+      const rooms = parseRoomComments(yaml);
+      if (rooms.length > 0) {
+        // Replace rooms with parsed ones
+        for (const existingRoom of (project.rooms || [])) {
+          dispatch({ type: 'DELETE_ROOM', id: existingRoom.id });
+        }
+        for (const room of rooms) {
+          dispatch({ type: 'ADD_ROOM', room });
+        }
+      }
+
       setEdited(false);
       setError(null);
-      toast.success(`Progetto aggiornato: ${elements.length} elementi`);
+      toast.success(`Progetto aggiornato: ${elements.length} elementi, ${rooms.length} stanze`);
     } catch (e: any) {
       setError(e.message || 'Errore nel parsing del YAML');
     }

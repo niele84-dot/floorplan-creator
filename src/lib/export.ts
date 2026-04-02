@@ -74,25 +74,57 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
   return lines.join('\n');
 }
 
-function generateRoomOverlayYAML(room: Room, indent: string): string {
+function getLinkedEntity(room: Room, elements: FloorplanElement[]): string {
+  if (room.linkedElementId) {
+    const linked = elements.find(el => el.id === room.linkedElementId);
+    if (linked?.ha.entity) return linked.ha.entity;
+  }
+  return room.entity || 'light.change_me';
+}
+
+function getLinkedTapAction(room: Room, elements: FloorplanElement[]): string {
+  if (room.linkedElementId) {
+    const linked = elements.find(el => el.id === room.linkedElementId);
+    if (linked?.ha.tap_action) {
+      const lines: string[] = [];
+      lines.push(`    action: ${linked.ha.tap_action.action}`);
+      if (linked.ha.tap_action.navigation_path) {
+        lines.push(`    navigation_path: ${linked.ha.tap_action.navigation_path}`);
+      }
+      if (linked.ha.tap_action.service) {
+        lines.push(`    service: ${linked.ha.tap_action.service}`);
+      }
+      return lines.join('\n');
+    }
+  }
+  return '    action: toggle';
+}
+
+function generateRoomOverlayYAML(room: Room, elements: FloorplanElement[], indent: string): string {
   const slug = room.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+  const entity = getLinkedEntity(room, elements);
   const lines: string[] = [];
 
-  lines.push(`${indent}# --- Room: ${room.name} ---`);
+  // Room metadata comment for re-import
+  const polygonJson = JSON.stringify(room.polygon.map(p => [+p.leftPct.toFixed(2), +p.topPct.toFixed(2)]));
+  lines.push(`${indent}# @room id=${room.id} name="${room.name}" polygon=${polygonJson} color=${room.overlayColor} linked=${room.linkedElementId || ''}`);
+
   lines.push(`${indent}- type: image`);
-  lines.push(`${indent}  entity: ${room.entity || 'light.change_me'}`);
+  lines.push(`${indent}  entity: ${entity}`);
   lines.push(`${indent}  image: /local/floorplan/overlays/${slug}_glow.png`);
   lines.push(`${indent}  state_filter:`);
   lines.push(`${indent}    "on": opacity(0.75)`);
   lines.push(`${indent}    "off": opacity(0)`);
   lines.push(`${indent}    "unavailable": opacity(0.15)`);
   lines.push(`${indent}  tap_action:`);
-  lines.push(`${indent}    action: toggle`);
+  const tapLines = getLinkedTapAction(room, elements);
+  for (const tl of tapLines.split('\n')) {
+    lines.push(`${indent}  ${tl}`);
+  }
   lines.push(`${indent}  style:`);
   lines.push(`${indent}    top: "50%"`);
   lines.push(`${indent}    left: "50%"`);
   lines.push(`${indent}    width: "100%"`);
-  lines.push(`${indent}    mix-blend-mode: screen`);
   lines.push(`${indent}    pointer-events: auto`);
 
   return lines.join('\n');
@@ -110,7 +142,7 @@ export function generateYAML(project: FloorplanProject): string {
   // Room overlays first (render below icons)
   const rooms = project.rooms || [];
   for (const room of rooms) {
-    lines.push(generateRoomOverlayYAML(room, '  '));
+    lines.push(generateRoomOverlayYAML(room, project.elements, '  '));
   }
 
   // Then elements
@@ -124,6 +156,7 @@ export function generateYAML(project: FloorplanProject): string {
 /**
  * Generate a transparent PNG overlay for a room polygon.
  * Draws on an offscreen canvas matching the background image dimensions.
+ * Uses a soft glow effect with blur for natural lighting appearance.
  */
 function generateRoomOverlayPNG(
   room: Room,
@@ -137,7 +170,7 @@ function generateRoomOverlayPNG(
 
   ctx.clearRect(0, 0, bgWidth, bgHeight);
 
-  // Draw the polygon filled with the room's glow color
+  // Draw the polygon path
   ctx.beginPath();
   room.polygon.forEach((pt, i) => {
     const x = (pt.leftPct / 100) * bgWidth;
@@ -147,12 +180,75 @@ function generateRoomOverlayPNG(
   });
   ctx.closePath();
 
-  // Parse hex color and create a warm glow fill
+  // Fill with glow color — use a radial gradient for warmth
   const color = room.overlayColor || '#FFA500';
-  ctx.fillStyle = color;
+  
+  // Calculate bounding box for gradient
+  const xs = room.polygon.map(p => (p.leftPct / 100) * bgWidth);
+  const ys = room.polygon.map(p => (p.topPct / 100) * bgHeight);
+  const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const maxDist = Math.max(
+    ...room.polygon.map(p => {
+      const dx = (p.leftPct / 100) * bgWidth - cx;
+      const dy = (p.topPct / 100) * bgHeight - cy;
+      return Math.sqrt(dx * dx + dy * dy);
+    })
+  );
+
+  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxDist * 1.2);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(0.7, color);
+  gradient.addColorStop(1, color + '44'); // fade at edges
+
+  ctx.fillStyle = gradient;
   ctx.fill();
 
-  return canvas.toDataURL('image/png');
+  // Apply a second pass with slight blur for soft edges
+  // Draw a slightly larger, semi-transparent version underneath
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = bgWidth;
+  tempCanvas.height = bgHeight;
+  const tempCtx = tempCanvas.getContext('2d')!;
+  tempCtx.filter = 'blur(8px)';
+  tempCtx.drawImage(canvas, 0, 0);
+  
+  // Composite: blurred version behind sharp version
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = bgWidth;
+  finalCanvas.height = bgHeight;
+  const finalCtx = finalCanvas.getContext('2d')!;
+  finalCtx.globalAlpha = 0.6;
+  finalCtx.drawImage(tempCanvas, 0, 0);
+  finalCtx.globalAlpha = 1.0;
+  finalCtx.drawImage(canvas, 0, 0);
+
+  return finalCanvas.toDataURL('image/png');
+}
+
+/**
+ * Parse room metadata from YAML comment lines.
+ * Format: # @room id=xxx name="Room" polygon=[[x,y],...] color=#hex linked=elementId
+ */
+export function parseRoomComments(yamlText: string): Room[] {
+  const rooms: Room[] = [];
+  const regex = /^[\s]*#\s*@room\s+id=(\S+)\s+name="([^"]*?)"\s+polygon=(\[.+?\])\s+color=(\S+)\s+linked=(.*)$/gm;
+  let match;
+  while ((match = regex.exec(yamlText)) !== null) {
+    try {
+      const polygonArr = JSON.parse(match[3]) as number[][];
+      rooms.push({
+        id: match[1],
+        name: match[2],
+        polygon: polygonArr.map(([left, top]) => ({ leftPct: left, topPct: top })),
+        linkedElementId: match[5].trim() || null,
+        entity: '', // will be resolved from linked element
+        overlayColor: match[4],
+        zIndex: 0,
+      });
+    } catch { /* skip malformed */ }
+  }
+  return rooms;
 }
 
 function generateReadme(project: FloorplanProject): string {
@@ -160,7 +256,9 @@ function generateReadme(project: FloorplanProject): string {
   const roomSection = rooms.length > 0
     ? `\n## Room Overlays\n\n${rooms.map(r => {
         const slug = r.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
-        return `- **${r.name}**: \`/local/floorplan/overlays/${slug}_glow.png\` → entity: \`${r.entity || 'light.change_me'}\``;
+        const linkedEl = r.linkedElementId ? project.elements.find(el => el.id === r.linkedElementId) : null;
+        const entity = linkedEl?.ha.entity || r.entity || 'light.change_me';
+        return `- **${r.name}**: \`/local/floorplan/overlays/${slug}_glow.png\` → entity: \`${entity}\`${linkedEl ? ` (linked to icon: ${linkedEl.ha.icon || linkedEl.label || linkedEl.id.slice(0,8)})` : ''}`;
       }).join('\n')}\n`
     : '';
 
