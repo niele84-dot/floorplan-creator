@@ -27,6 +27,7 @@ export function CanvasEditor({
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(false);
