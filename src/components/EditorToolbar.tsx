@@ -93,6 +93,10 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <ClipboardPaste className="h-3.5 w-3.5" /> Importa YAML
         </Button>
 
+        <Button variant="ghost" size="sm" onClick={() => setMergeOpen(true)} className="h-8 gap-1 text-xs">
+          <GitMerge className="h-3.5 w-3.5" /> Merge YAML
+        </Button>
+
         <Button
           variant={showYaml ? 'secondary' : 'ghost'}
           size="sm"
