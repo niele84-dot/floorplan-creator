@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { FloorplanElement, RoomPoint, Room } from '@/types/project';
-import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet } from 'lucide-react';
+import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
@@ -27,6 +27,7 @@ export function CanvasEditor({
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(false);
@@ -396,6 +397,10 @@ export function CanvasEditor({
         <Toggle size="sm" pressed={snapToGrid} onPressedChange={setSnapToGrid} className="h-7 px-2 text-xs gap-1">
           <Magnet className="h-3.5 w-3.5" /> Snap
         </Toggle>
+        <Button variant="ghost" size="sm" onClick={() => bgInputRef.current?.click()} className="h-7 px-2 text-xs gap-1">
+          <ImagePlus className="h-3.5 w-3.5" /> Sfondo
+        </Button>
+        <input ref={bgInputRef} type="file" accept="image/*,.svg,image/svg+xml" className="hidden" onChange={handleBgUpload} />
         <div className="w-px h-5 bg-border mx-1" />
         <Toggle
           size="sm"
