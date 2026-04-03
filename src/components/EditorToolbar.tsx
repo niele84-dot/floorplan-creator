@@ -111,6 +111,7 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
         </Button>
       </div>
       <ImportYamlDialog open={importOpen} onOpenChange={setImportOpen} />
+      <MergeYamlDialog open={mergeOpen} onOpenChange={setMergeOpen} />
     </header>
   );
 }
