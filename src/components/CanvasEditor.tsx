@@ -442,7 +442,7 @@ export function CanvasEditor({
               <div className="text-4xl">🏠</div>
               <span className="text-sm text-muted-foreground">Upload a floorplan image</span>
               <span className="text-xs text-muted-foreground">PNG, JPG, or SVG</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
+              <input type="file" accept="image/*,.svg,image/svg+xml" className="hidden" onChange={handleBgUpload} />
             </label>
           </div>
         ) : (
