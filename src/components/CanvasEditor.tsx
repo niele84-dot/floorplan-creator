@@ -451,13 +451,29 @@ export function CanvasEditor({
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center' }}
           >
             <div className="relative inline-block">
-              <img
-                ref={imageRef}
-                src={project.backgroundImage.dataUrl}
-                alt="Floorplan"
-                className="max-w-full max-h-[80vh] select-none"
-                draggable={false}
-              />
+              {project.backgroundImage.filename.toLowerCase().endsWith('.svg') ? (
+                <img
+                  ref={imageRef}
+                  src={project.backgroundImage.dataUrl}
+                  alt="Floorplan"
+                  className="max-w-full max-h-[80vh] select-none"
+                  draggable={false}
+                  style={{
+                    width: project.backgroundImage.originalWidth,
+                    height: project.backgroundImage.originalHeight,
+                    maxWidth: '100%',
+                    maxHeight: '80vh',
+                  }}
+                />
+              ) : (
+                <img
+                  ref={imageRef}
+                  src={project.backgroundImage.dataUrl}
+                  alt="Floorplan"
+                  className="max-w-full max-h-[80vh] select-none"
+                  draggable={false}
+                />
+              )}
               {/* Grid overlay */}
               {showGrid && (
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.15 }}>
