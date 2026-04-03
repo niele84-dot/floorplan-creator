@@ -397,6 +397,10 @@ export function CanvasEditor({
         <Toggle size="sm" pressed={snapToGrid} onPressedChange={setSnapToGrid} className="h-7 px-2 text-xs gap-1">
           <Magnet className="h-3.5 w-3.5" /> Snap
         </Toggle>
+        <Button variant="ghost" size="sm" onClick={() => bgInputRef.current?.click()} className="h-7 px-2 text-xs gap-1">
+          <ImagePlus className="h-3.5 w-3.5" /> Sfondo
+        </Button>
+        <input ref={bgInputRef} type="file" accept="image/*,.svg,image/svg+xml" className="hidden" onChange={handleBgUpload} />
         <div className="w-px h-5 bg-border mx-1" />
         <Toggle
           size="sm"
