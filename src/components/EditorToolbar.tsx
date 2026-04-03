@@ -4,8 +4,9 @@ import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge } from 'lucide-react';
 import { ImportYamlDialog } from '@/components/ImportYamlDialog';
+import { MergeYamlDialog } from '@/components/MergeYamlDialog';
 import { toast } from 'sonner';
 
 interface EditorToolbarProps {
