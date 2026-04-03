@@ -164,21 +164,52 @@ export function CanvasEditor({
   const handleBgUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const isSvg = file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
     const reader = new FileReader();
     reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        dispatch({
-          type: 'SET_BACKGROUND',
-          bg: {
-            filename: file.name,
-            originalWidth: img.naturalWidth,
-            originalHeight: img.naturalHeight,
-            dataUrl: reader.result as string,
-          },
-        });
-      };
-      img.src = reader.result as string;
+      const dataUrl = reader.result as string;
+
+      if (isSvg) {
+        // For SVG: parse viewBox/width/height from the markup to get dimensions
+        const textReader = new FileReader();
+        textReader.onload = () => {
+          const svgText = textReader.result as string;
+          let w = 1920, h = 1080; // sensible defaults
+          const vbMatch = svgText.match(/viewBox=["']([^"']+)["']/);
+          if (vbMatch) {
+            const parts = vbMatch[1].trim().split(/[\s,]+/).map(Number);
+            if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+              w = parts[2];
+              h = parts[3];
+            }
+          }
+          // Explicit width/height override viewBox
+          const wMatch = svgText.match(/<svg[^>]*\swidth=["'](\d+(?:\.\d+)?)/);
+          const hMatch = svgText.match(/<svg[^>]*\sheight=["'](\d+(?:\.\d+)?)/);
+          if (wMatch) w = parseFloat(wMatch[1]);
+          if (hMatch) h = parseFloat(hMatch[1]);
+
+          dispatch({
+            type: 'SET_BACKGROUND',
+            bg: { filename: file.name, originalWidth: w, originalHeight: h, dataUrl },
+          });
+        };
+        textReader.readAsText(file);
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          dispatch({
+            type: 'SET_BACKGROUND',
+            bg: {
+              filename: file.name,
+              originalWidth: img.naturalWidth,
+              originalHeight: img.naturalHeight,
+              dataUrl,
+            },
+          });
+        };
+        img.src = dataUrl;
+      }
     };
     reader.readAsDataURL(file);
   }, [dispatch]);
