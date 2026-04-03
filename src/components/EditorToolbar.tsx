@@ -4,8 +4,9 @@ import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge } from 'lucide-react';
 import { ImportYamlDialog } from '@/components/ImportYamlDialog';
+import { MergeYamlDialog } from '@/components/MergeYamlDialog';
 import { toast } from 'sonner';
 
 interface EditorToolbarProps {
@@ -17,6 +18,7 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
 
   const handleExport = async () => {
     try {
@@ -91,6 +93,10 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <ClipboardPaste className="h-3.5 w-3.5" /> Importa YAML
         </Button>
 
+        <Button variant="ghost" size="sm" onClick={() => setMergeOpen(true)} className="h-8 gap-1 text-xs">
+          <GitMerge className="h-3.5 w-3.5" /> Merge YAML
+        </Button>
+
         <Button
           variant={showYaml ? 'secondary' : 'ghost'}
           size="sm"
@@ -105,6 +111,7 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
         </Button>
       </div>
       <ImportYamlDialog open={importOpen} onOpenChange={setImportOpen} />
+      <MergeYamlDialog open={mergeOpen} onOpenChange={setMergeOpen} />
     </header>
   );
 }
