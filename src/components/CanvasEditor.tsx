@@ -1,12 +1,10 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { FloorplanElement, RoomPoint, Room } from '@/types/project';
-import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus, RotateCw, RotateCcw, Minus, Plus } from 'lucide-react';
+import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
 interface CanvasEditorProps {
@@ -16,6 +14,8 @@ interface CanvasEditorProps {
   setSelectedRoomId: (id: string | null) => void;
   linkingRoomId: string | null;
   setLinkingRoomId: (id: string | null) => void;
+  onBgUploadRef?: (fn: () => void) => void;
+  onElementSelected?: () => void;
 }
 
 export function CanvasEditor({
@@ -25,11 +25,19 @@ export function CanvasEditor({
   setSelectedRoomId,
   linkingRoomId,
   setLinkingRoomId,
+  onBgUploadRef,
+  onElementSelected,
 }: CanvasEditorProps) {
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+
+  // Expose upload trigger to parent
+  useEffect(() => {
+    onBgUploadRef?.(() => bgInputRef.current?.click());
+  }, [onBgUploadRef]);
+
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(false);
@@ -221,6 +229,7 @@ export function CanvasEditor({
     if (drawingMode || linkingRoomId) return;
     e.stopPropagation();
     setSelectedElementId(el.id);
+    onElementSelected?.();
     setSelectedRoomId(null);
     setDragging({
       id: el.id,
@@ -403,69 +412,6 @@ export function CanvasEditor({
           <ImagePlus className="h-3.5 w-3.5" /> Sfondo
         </Button>
         <input ref={bgInputRef} type="file" accept="image/*,.svg,image/svg+xml" className="hidden" onChange={handleBgUpload} />
-        {project.backgroundImage && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
-                <RotateCw className="h-3.5 w-3.5" /> Trasforma
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 space-y-4" align="start">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Scala</span>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {Math.round((project.backgroundImage.scale ?? 1) * 100)}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="h-6 w-6 p-0"
-                    onClick={() => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, scale: Math.max(0.1, (project.backgroundImage!.scale ?? 1) - 0.1) } })}>
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <Slider
-                    min={10} max={500} step={5}
-                    value={[Math.round((project.backgroundImage.scale ?? 1) * 100)]}
-                    onValueChange={([v]) => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, scale: v / 100 } })}
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm" className="h-6 w-6 p-0"
-                    onClick={() => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, scale: Math.min(5, (project.backgroundImage!.scale ?? 1) + 0.1) } })}>
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Rotazione</span>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {project.backgroundImage.rotationDeg ?? 0}°
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="h-6 w-6 p-0"
-                    onClick={() => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, rotationDeg: (project.backgroundImage!.rotationDeg ?? 0) - 90 } })}>
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                  <Slider
-                    min={-180} max={180} step={1}
-                    value={[project.backgroundImage.rotationDeg ?? 0]}
-                    onValueChange={([v]) => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, rotationDeg: v } })}
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm" className="h-6 w-6 p-0"
-                    onClick={() => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, rotationDeg: (project.backgroundImage!.rotationDeg ?? 0) + 90 } })}>
-                    <RotateCw className="h-3 w-3" />
-                  </Button>
-                </div>
-                <Button variant="ghost" size="sm" className="h-6 w-full text-xs"
-                  onClick={() => dispatch({ type: 'SET_BACKGROUND', bg: { ...project.backgroundImage!, scale: 1, rotationDeg: 0 } })}>
-                  Reset
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
         <div className="w-px h-5 bg-border mx-1" />
         <Toggle
           size="sm"
@@ -520,10 +466,7 @@ export function CanvasEditor({
             className="absolute inset-0 flex items-center justify-center"
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center' }}
           >
-            <div className="relative inline-block" style={{
-              transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
-              transformOrigin: 'center',
-            }}>
+            <div className="relative inline-block">
               {project.backgroundImage.filename.toLowerCase().endsWith('.svg') ? (
                 <img
                   ref={imageRef}
@@ -536,6 +479,8 @@ export function CanvasEditor({
                     height: project.backgroundImage.originalHeight,
                     maxWidth: '100%',
                     maxHeight: '80vh',
+                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transformOrigin: 'center',
                   }}
                 />
               ) : (
@@ -545,6 +490,10 @@ export function CanvasEditor({
                   alt="Floorplan"
                   className="max-w-full max-h-[80vh] select-none"
                   draggable={false}
+                  style={{
+                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transformOrigin: 'center',
+                  }}
                 />
               )}
               {/* Grid overlay */}

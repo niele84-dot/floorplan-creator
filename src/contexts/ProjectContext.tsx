@@ -14,7 +14,7 @@ const defaultProject: FloorplanProject = {
 
 type Action =
   | { type: 'SET_PROJECT'; project: FloorplanProject }
-  | { type: 'SET_BACKGROUND'; bg: BackgroundImage }
+  | { type: 'SET_BACKGROUND'; bg: BackgroundImage | null }
   | { type: 'ADD_ELEMENT'; element: FloorplanElement }
   | { type: 'UPDATE_ELEMENT'; id: string; changes: Partial<FloorplanElement> }
   | { type: 'DELETE_ELEMENT'; id: string }
