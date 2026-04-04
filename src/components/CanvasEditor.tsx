@@ -14,6 +14,8 @@ interface CanvasEditorProps {
   setSelectedRoomId: (id: string | null) => void;
   linkingRoomId: string | null;
   setLinkingRoomId: (id: string | null) => void;
+  onBgUploadRef?: (fn: () => void) => void;
+  onElementSelected?: () => void;
 }
 
 export function CanvasEditor({
@@ -23,6 +25,8 @@ export function CanvasEditor({
   setSelectedRoomId,
   linkingRoomId,
   setLinkingRoomId,
+  onBgUploadRef,
+  onElementSelected,
 }: CanvasEditorProps) {
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
