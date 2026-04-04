@@ -5,6 +5,8 @@ import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus, RotateC
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
 interface CanvasEditorProps {
