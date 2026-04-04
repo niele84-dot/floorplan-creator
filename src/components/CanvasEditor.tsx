@@ -32,6 +32,12 @@ export function CanvasEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+
+  // Expose upload trigger to parent
+  useEffect(() => {
+    onBgUploadRef?.(() => bgInputRef.current?.click());
+  }, [onBgUploadRef]);
+
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(false);
