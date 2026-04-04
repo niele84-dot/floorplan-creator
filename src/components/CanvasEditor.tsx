@@ -229,6 +229,7 @@ export function CanvasEditor({
     if (drawingMode || linkingRoomId) return;
     e.stopPropagation();
     setSelectedElementId(el.id);
+    onElementSelected?.();
     setSelectedRoomId(null);
     setDragging({
       id: el.id,
