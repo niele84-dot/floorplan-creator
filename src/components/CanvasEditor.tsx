@@ -465,10 +465,7 @@ export function CanvasEditor({
             className="absolute inset-0 flex items-center justify-center"
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center' }}
           >
-            <div className="relative inline-block" style={{
-              transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
-              transformOrigin: 'center',
-            }}>
+            <div className="relative inline-block">
               {project.backgroundImage.filename.toLowerCase().endsWith('.svg') ? (
                 <img
                   ref={imageRef}
@@ -481,6 +478,8 @@ export function CanvasEditor({
                     height: project.backgroundImage.originalHeight,
                     maxWidth: '100%',
                     maxHeight: '80vh',
+                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transformOrigin: 'center',
                   }}
                 />
               ) : (
@@ -490,6 +489,10 @@ export function CanvasEditor({
                   alt="Floorplan"
                   className="max-w-full max-h-[80vh] select-none"
                   draggable={false}
+                  style={{
+                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transformOrigin: 'center',
+                  }}
                 />
               )}
               {/* Grid overlay */}
