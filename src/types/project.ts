@@ -61,6 +61,8 @@ export interface BackgroundImage {
   originalWidth: number;
   originalHeight: number;
   dataUrl: string;
+  scale?: number;       // 0.1–5, default 1
+  rotationDeg?: number; // degrees, default 0
 }
 
 export interface FloorplanProject {
