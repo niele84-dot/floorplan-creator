@@ -1,12 +1,10 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { FloorplanElement, RoomPoint, Room } from '@/types/project';
-import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus, RotateCw, RotateCcw, Minus, Plus } from 'lucide-react';
+import { Grid3X3, ZoomIn, ZoomOut, Maximize, PenTool, Magnet, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
 interface CanvasEditorProps {
