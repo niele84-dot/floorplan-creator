@@ -1,15 +1,17 @@
 import React from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { Room } from '@/types/project';
-import { Eye, Layers, Home, Box } from 'lucide-react';
+import { Eye, Layers, Home, Box, ImageIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LayerPanelProps {
   selectedRoomId: string | null;
   setSelectedRoomId: (id: string | null) => void;
+  isBackgroundSelected: boolean;
+  setBackgroundSelected: (v: boolean) => void;
 }
 
-export function LayerPanel({ selectedRoomId, setSelectedRoomId }: LayerPanelProps) {
+export function LayerPanel({ selectedRoomId, setSelectedRoomId, isBackgroundSelected, setBackgroundSelected }: LayerPanelProps) {
   const { project, selectedElementId, setSelectedElementId } = useProject();
   const rooms = project.rooms || [];
   const elements = [...project.elements].sort((a, b) => b.zIndex - a.zIndex);
@@ -21,6 +23,30 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId }: LayerPanelProp
         <span className="text-xs font-semibold text-foreground">Livelli</span>
       </div>
       <ScrollArea className="flex-1">
+        {/* Background layer */}
+        <div className="px-2 pt-2">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">Sfondo</span>
+          <div className="mt-1 space-y-0.5">
+            <button
+              onClick={() => {
+                setBackgroundSelected(true);
+                setSelectedElementId(null);
+                setSelectedRoomId(null);
+              }}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
+                isBackgroundSelected
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-foreground hover:bg-accent'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+              <span className="truncate">
+                {project.backgroundImage ? project.backgroundImage.filename : 'Nessuno sfondo'}
+              </span>
+            </button>
+          </div>
+        </div>
+
         {rooms.length > 0 && (
           <div className="px-2 pt-2">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">Stanze</span>
@@ -31,6 +57,7 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId }: LayerPanelProp
                   onClick={() => {
                     setSelectedRoomId(room.id);
                     setSelectedElementId(null);
+                    setBackgroundSelected(false);
                   }}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
                     selectedRoomId === room.id
@@ -58,6 +85,7 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId }: LayerPanelProp
                   onClick={() => {
                     setSelectedElementId(el.id);
                     setSelectedRoomId(null);
+                    setBackgroundSelected(false);
                   }}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
                     selectedElementId === el.id
@@ -81,7 +109,7 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId }: LayerPanelProp
             </div>
           </div>
         )}
-        {rooms.length === 0 && elements.length === 0 && (
+        {rooms.length === 0 && elements.length === 0 && !project.backgroundImage && (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
             Nessun elemento
           </div>

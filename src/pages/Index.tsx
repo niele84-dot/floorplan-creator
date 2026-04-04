@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ProjectProvider } from '@/contexts/ProjectContext';
 import { IconPicker } from '@/components/IconPicker';
 import { CanvasEditor } from '@/components/CanvasEditor';
 import { PropertiesPanel } from '@/components/PropertiesPanel';
 import { RoomPropertiesPanel } from '@/components/RoomPropertiesPanel';
+import { BackgroundPropertiesPanel } from '@/components/BackgroundPropertiesPanel';
 import { EditorToolbar } from '@/components/EditorToolbar';
 import { YamlEditor } from '@/components/YamlEditor';
 import { LayerPanel } from '@/components/LayerPanel';
@@ -14,11 +15,19 @@ function EditorLayout() {
   const [drawingMode, setDrawingMode] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [linkingRoomId, setLinkingRoomId] = useState<string | null>(null);
+  const [isBackgroundSelected, setBackgroundSelected] = useState(false);
+  const bgUploadRef = useRef<(() => void) | null>(null);
 
-  const { project } = useProject();
+  const { project, setSelectedElementId } = useProject();
   const selectedRoom = selectedRoomId
     ? (project.rooms || []).find(r => r.id === selectedRoomId) || null
     : null;
+
+  // When an element or room is selected, deselect background
+  const handleSetSelectedRoomId = (id: string | null) => {
+    setSelectedRoomId(id);
+    if (id) setBackgroundSelected(false);
+  };
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -29,20 +38,26 @@ function EditorLayout() {
         </div>
         <LayerPanel
           selectedRoomId={selectedRoomId}
-          setSelectedRoomId={setSelectedRoomId}
+          setSelectedRoomId={handleSetSelectedRoomId}
+          isBackgroundSelected={isBackgroundSelected}
+          setBackgroundSelected={setBackgroundSelected}
         />
         <CanvasEditor
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
           selectedRoomId={selectedRoomId}
-          setSelectedRoomId={setSelectedRoomId}
+          setSelectedRoomId={handleSetSelectedRoomId}
           linkingRoomId={linkingRoomId}
           setLinkingRoomId={setLinkingRoomId}
+          onBgUploadRef={(fn) => { bgUploadRef.current = fn; }}
+          onElementSelected={() => setBackgroundSelected(false)}
         />
         {showYaml ? (
           <div className="w-80 flex-shrink-0">
             <YamlEditor />
           </div>
+        ) : isBackgroundSelected ? (
+          <BackgroundPropertiesPanel onUpload={() => bgUploadRef.current?.()} />
         ) : selectedRoom ? (
           <RoomPropertiesPanel
             room={selectedRoom}
