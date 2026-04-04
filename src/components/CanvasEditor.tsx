@@ -520,7 +520,10 @@ export function CanvasEditor({
             className="absolute inset-0 flex items-center justify-center"
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center' }}
           >
-            <div className="relative inline-block">
+            <div className="relative inline-block" style={{
+              transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+              transformOrigin: 'center',
+            }}>
               {project.backgroundImage.filename.toLowerCase().endsWith('.svg') ? (
                 <img
                   ref={imageRef}
