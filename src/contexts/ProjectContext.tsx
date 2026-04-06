@@ -127,6 +127,26 @@ function projectReducer(state: State, action: Action): State {
         ...state.project,
         rooms: (state.project.rooms || []).filter(r => r.id !== action.id),
       });
+    case 'SCALE_ALL_POSITIONS': {
+      const f = action.factor;
+      // Scale element positions proportionally from center (50%, 50%), keep icon sizes unchanged
+      const scaledElements = state.project.elements.map(el => ({
+        ...el,
+        position: {
+          leftPct: Math.max(0, Math.min(100, 50 + (el.position.leftPct - 50) * f)),
+          topPct: Math.max(0, Math.min(100, 50 + (el.position.topPct - 50) * f)),
+        },
+      }));
+      // Also scale room polygons
+      const scaledRooms = (state.project.rooms || []).map(r => ({
+        ...r,
+        polygon: r.polygon.map(p => ({
+          leftPct: Math.max(0, Math.min(100, 50 + (p.leftPct - 50) * f)),
+          topPct: Math.max(0, Math.min(100, 50 + (p.topPct - 50) * f)),
+        })),
+      }));
+      return pushHistory({ ...state.project, elements: scaledElements, rooms: scaledRooms });
+    }
     case 'UNDO': {
       if (state.historyIndex <= 0) return state;
       const newIdx = state.historyIndex - 1;
