@@ -503,14 +503,14 @@ export function CanvasEditor({
                   ref={imageRef}
                   src={project.backgroundImage.dataUrl}
                   alt="Floorplan"
-                  className="max-w-full max-h-[80vh] select-none"
+                  className={`max-w-full max-h-[80vh] select-none ${isBackgroundSelected ? 'cursor-grab active:cursor-grabbing ring-2 ring-primary/50' : ''}`}
                   draggable={false}
                   style={{
                     width: project.backgroundImage.originalWidth,
                     height: project.backgroundImage.originalHeight,
                     maxWidth: '100%',
                     maxHeight: '80vh',
-                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transform: `translate(${project.backgroundImage.offsetXPct ?? 0}%, ${project.backgroundImage.offsetYPct ?? 0}%) scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
                     transformOrigin: 'center',
                   }}
                 />
@@ -519,10 +519,10 @@ export function CanvasEditor({
                   ref={imageRef}
                   src={project.backgroundImage.dataUrl}
                   alt="Floorplan"
-                  className="max-w-full max-h-[80vh] select-none"
+                  className={`max-w-full max-h-[80vh] select-none ${isBackgroundSelected ? 'cursor-grab active:cursor-grabbing ring-2 ring-primary/50' : ''}`}
                   draggable={false}
                   style={{
-                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transform: `translate(${project.backgroundImage.offsetXPct ?? 0}%, ${project.backgroundImage.offsetYPct ?? 0}%) scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
                     transformOrigin: 'center',
                   }}
                 />
