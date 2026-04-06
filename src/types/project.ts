@@ -63,6 +63,8 @@ export interface BackgroundImage {
   dataUrl: string;
   scale?: number;       // 0.1–5, default 1
   rotationDeg?: number; // degrees, default 0
+  offsetXPct?: number;  // horizontal offset %, default 0
+  offsetYPct?: number;  // vertical offset %, default 0
 }
 
 export interface FloorplanProject {

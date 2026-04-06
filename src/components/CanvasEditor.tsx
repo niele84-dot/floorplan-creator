@@ -16,6 +16,7 @@ interface CanvasEditorProps {
   setLinkingRoomId: (id: string | null) => void;
   onBgUploadRef?: (fn: () => void) => void;
   onElementSelected?: () => void;
+  isBackgroundSelected?: boolean;
 }
 
 export function CanvasEditor({
@@ -27,6 +28,7 @@ export function CanvasEditor({
   setLinkingRoomId,
   onBgUploadRef,
   onElementSelected,
+  isBackgroundSelected,
 }: CanvasEditorProps) {
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,8 @@ export function CanvasEditor({
   const [dragging, setDragging] = useState<{ id: string; startX: number; startY: number; startLeft: number; startTop: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [isDraggingBg, setIsDraggingBg] = useState(false);
+  const [bgDragStart, setBgDragStart] = useState({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
 
   // Room drawing state
   const [drawingPoints, setDrawingPoints] = useState<RoomPoint[]>([]);
@@ -254,6 +258,20 @@ export function CanvasEditor({
         changes: { position: { leftPct: newLeft, topPct: newTop } },
       });
     }
+    if (isDraggingBg && project.backgroundImage) {
+      const imgRect = getImageRect();
+      if (!imgRect) return;
+      const dx = ((e.clientX - bgDragStart.x) / imgRect.width) * 100;
+      const dy = ((e.clientY - bgDragStart.y) / imgRect.height) * 100;
+      dispatch({
+        type: 'SET_BACKGROUND',
+        bg: {
+          ...project.backgroundImage,
+          offsetXPct: bgDragStart.offsetX + dx,
+          offsetYPct: bgDragStart.offsetY + dy,
+        },
+      });
+    }
     if (isPanning) {
       setPan(prev => ({
         x: prev.x + (e.clientX - panStart.x),
@@ -261,11 +279,12 @@ export function CanvasEditor({
       }));
       setPanStart({ x: e.clientX, y: e.clientY });
     }
-  }, [dragging, isPanning, panStart, getImageRect, dispatch, snapToGrid]);
+  }, [dragging, isDraggingBg, bgDragStart, isPanning, panStart, getImageRect, dispatch, snapToGrid, project.backgroundImage]);
 
   const handleMouseUp = useCallback(() => {
     setDragging(null);
     setIsPanning(false);
+    setIsDraggingBg(false);
   }, []);
 
   useEffect(() => {
@@ -354,6 +373,18 @@ export function CanvasEditor({
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (drawingMode) return;
     if (e.target === containerRef.current || e.target === imageRef.current) {
+      // If background is selected, start dragging the background offset
+      if (isBackgroundSelected && e.target === imageRef.current && project.backgroundImage) {
+        e.preventDefault();
+        setIsDraggingBg(true);
+        setBgDragStart({
+          x: e.clientX,
+          y: e.clientY,
+          offsetX: project.backgroundImage.offsetXPct ?? 0,
+          offsetY: project.backgroundImage.offsetYPct ?? 0,
+        });
+        return;
+      }
       setSelectedElementId(null);
       setSelectedRoomId(null);
       if (e.button === 1 || e.altKey) {
@@ -472,14 +503,14 @@ export function CanvasEditor({
                   ref={imageRef}
                   src={project.backgroundImage.dataUrl}
                   alt="Floorplan"
-                  className="max-w-full max-h-[80vh] select-none"
+                  className={`max-w-full max-h-[80vh] select-none ${isBackgroundSelected ? 'cursor-grab active:cursor-grabbing ring-2 ring-primary/50' : ''}`}
                   draggable={false}
                   style={{
                     width: project.backgroundImage.originalWidth,
                     height: project.backgroundImage.originalHeight,
                     maxWidth: '100%',
                     maxHeight: '80vh',
-                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transform: `translate(${project.backgroundImage.offsetXPct ?? 0}%, ${project.backgroundImage.offsetYPct ?? 0}%) scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
                     transformOrigin: 'center',
                   }}
                 />
@@ -488,10 +519,10 @@ export function CanvasEditor({
                   ref={imageRef}
                   src={project.backgroundImage.dataUrl}
                   alt="Floorplan"
-                  className="max-w-full max-h-[80vh] select-none"
+                  className={`max-w-full max-h-[80vh] select-none ${isBackgroundSelected ? 'cursor-grab active:cursor-grabbing ring-2 ring-primary/50' : ''}`}
                   draggable={false}
                   style={{
-                    transform: `scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
+                    transform: `translate(${project.backgroundImage.offsetXPct ?? 0}%, ${project.backgroundImage.offsetYPct ?? 0}%) scale(${project.backgroundImage.scale ?? 1}) rotate(${project.backgroundImage.rotationDeg ?? 0}deg)`,
                     transformOrigin: 'center',
                   }}
                 />
