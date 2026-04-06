@@ -45,6 +45,8 @@ export function CanvasEditor({
   const [dragging, setDragging] = useState<{ id: string; startX: number; startY: number; startLeft: number; startTop: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [isDraggingBg, setIsDraggingBg] = useState(false);
+  const [bgDragStart, setBgDragStart] = useState({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
 
   // Room drawing state
   const [drawingPoints, setDrawingPoints] = useState<RoomPoint[]>([]);
@@ -254,6 +256,20 @@ export function CanvasEditor({
         changes: { position: { leftPct: newLeft, topPct: newTop } },
       });
     }
+    if (isDraggingBg && project.backgroundImage) {
+      const imgRect = getImageRect();
+      if (!imgRect) return;
+      const dx = ((e.clientX - bgDragStart.x) / imgRect.width) * 100;
+      const dy = ((e.clientY - bgDragStart.y) / imgRect.height) * 100;
+      dispatch({
+        type: 'SET_BACKGROUND',
+        bg: {
+          ...project.backgroundImage,
+          offsetXPct: bgDragStart.offsetX + dx,
+          offsetYPct: bgDragStart.offsetY + dy,
+        },
+      });
+    }
     if (isPanning) {
       setPan(prev => ({
         x: prev.x + (e.clientX - panStart.x),
@@ -261,11 +277,12 @@ export function CanvasEditor({
       }));
       setPanStart({ x: e.clientX, y: e.clientY });
     }
-  }, [dragging, isPanning, panStart, getImageRect, dispatch, snapToGrid]);
+  }, [dragging, isDraggingBg, bgDragStart, isPanning, panStart, getImageRect, dispatch, snapToGrid, project.backgroundImage]);
 
   const handleMouseUp = useCallback(() => {
     setDragging(null);
     setIsPanning(false);
+    setIsDraggingBg(false);
   }, []);
 
   useEffect(() => {
