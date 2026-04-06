@@ -25,6 +25,7 @@ type Action =
   | { type: 'ADD_ROOM'; room: Room }
   | { type: 'UPDATE_ROOM'; id: string; changes: Partial<Room> }
   | { type: 'DELETE_ROOM'; id: string }
+  | { type: 'SCALE_ALL_POSITIONS'; factor: number }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
