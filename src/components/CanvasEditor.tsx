@@ -16,6 +16,7 @@ interface CanvasEditorProps {
   setLinkingRoomId: (id: string | null) => void;
   onBgUploadRef?: (fn: () => void) => void;
   onElementSelected?: () => void;
+  isBackgroundSelected?: boolean;
 }
 
 export function CanvasEditor({
@@ -27,6 +28,7 @@ export function CanvasEditor({
   setLinkingRoomId,
   onBgUploadRef,
   onElementSelected,
+  isBackgroundSelected,
 }: CanvasEditorProps) {
   const { project, dispatch, selectedElementId, setSelectedElementId } = useProject();
   const containerRef = useRef<HTMLDivElement>(null);
