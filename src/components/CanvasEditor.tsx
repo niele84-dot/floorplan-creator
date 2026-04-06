@@ -373,6 +373,18 @@ export function CanvasEditor({
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (drawingMode) return;
     if (e.target === containerRef.current || e.target === imageRef.current) {
+      // If background is selected, start dragging the background offset
+      if (isBackgroundSelected && e.target === imageRef.current && project.backgroundImage) {
+        e.preventDefault();
+        setIsDraggingBg(true);
+        setBgDragStart({
+          x: e.clientX,
+          y: e.clientY,
+          offsetX: project.backgroundImage.offsetXPct ?? 0,
+          offsetY: project.backgroundImage.offsetYPct ?? 0,
+        });
+        return;
+      }
       setSelectedElementId(null);
       setSelectedRoomId(null);
       if (e.button === 1 || e.altKey) {
