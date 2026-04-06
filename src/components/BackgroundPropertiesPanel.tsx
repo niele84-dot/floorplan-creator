@@ -1,11 +1,10 @@
 import React from 'react';
 import { useProject } from '@/contexts/ProjectContext';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
-import { RotateCw, RotateCcw, Trash2, ImagePlus } from 'lucide-react';
+import { RotateCw, RotateCcw, Trash2, ImagePlus, Move, Maximize2 } from 'lucide-react';
 
 interface BackgroundPropertiesPanelProps {
   onUpload: () => void;
@@ -30,6 +29,8 @@ export function BackgroundPropertiesPanel({ onUpload }: BackgroundPropertiesPane
 
   const scale = bg.scale ?? 1;
   const rotation = bg.rotationDeg ?? 0;
+  const offsetX = bg.offsetXPct ?? 0;
+  const offsetY = bg.offsetYPct ?? 0;
 
   const updateBg = (changes: Partial<typeof bg>) => {
     dispatch({ type: 'SET_BACKGROUND', bg: { ...bg, ...changes } });
@@ -73,6 +74,28 @@ export function BackgroundPropertiesPanel({ onUpload }: BackgroundPropertiesPane
             </div>
           </div>
 
+          {/* Offset */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Move className="h-3 w-3" /> Offset X: {offsetX.toFixed(1)}%
+            </Label>
+            <Slider
+              value={[offsetX]}
+              min={-50} max={50} step={0.5}
+              onValueChange={([v]) => updateBg({ offsetXPct: v })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Move className="h-3 w-3" /> Offset Y: {offsetY.toFixed(1)}%
+            </Label>
+            <Slider
+              value={[offsetY]}
+              min={-50} max={50} step={0.5}
+              onValueChange={([v]) => updateBg({ offsetYPct: v })}
+            />
+          </div>
+
           {/* Scale */}
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">
@@ -109,9 +132,33 @@ export function BackgroundPropertiesPanel({ onUpload }: BackgroundPropertiesPane
 
           {/* Reset */}
           <Button variant="ghost" size="sm" className="h-7 w-full text-xs"
-            onClick={() => updateBg({ scale: 1, rotationDeg: 0 })}>
+            onClick={() => updateBg({ scale: 1, rotationDeg: 0, offsetXPct: 0, offsetYPct: 0 })}>
             Reset trasformazioni
           </Button>
+
+          {/* Scale All Elements */}
+          <div className="border-t border-border pt-3 space-y-2">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Maximize2 className="h-3 w-3" /> Scala posizioni elementi
+            </Label>
+            <p className="text-[10px] text-muted-foreground">
+              Sposta proporzionalmente tutte le icone e stanze dal centro. Le dimensioni delle icone non cambiano.
+            </p>
+            <div className="grid grid-cols-3 gap-1">
+              {[0.9, 0.95, 0.99].map(f => (
+                <Button key={f} variant="outline" size="sm" className="h-6 text-xs"
+                  onClick={() => dispatch({ type: 'SCALE_ALL_POSITIONS', factor: f })}>
+                  {Math.round(f * 100)}%
+                </Button>
+              ))}
+              {[1.01, 1.05, 1.1].map(f => (
+                <Button key={f} variant="outline" size="sm" className="h-6 text-xs"
+                  onClick={() => dispatch({ type: 'SCALE_ALL_POSITIONS', factor: f })}>
+                  {Math.round(f * 100)}%
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
       </ScrollArea>
     </div>

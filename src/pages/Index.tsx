@@ -51,6 +51,7 @@ function EditorLayout() {
           setLinkingRoomId={setLinkingRoomId}
           onBgUploadRef={(fn) => { bgUploadRef.current = fn; }}
           onElementSelected={() => setBackgroundSelected(false)}
+          isBackgroundSelected={isBackgroundSelected}
         />
         {showYaml ? (
           <div className="w-80 flex-shrink-0">
