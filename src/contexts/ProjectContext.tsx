@@ -51,7 +51,13 @@ function projectReducer(state: State, action: Action): State {
 
   switch (action.type) {
     case 'SET_PROJECT': {
-      const proj = { ...action.project, rooms: action.project.rooms || [] };
+      const proj = {
+        ...action.project,
+        rooms: (action.project.rooms || []).map(r => ({
+          ...r,
+          linkedElementIds: r.linkedElementIds || ((r as unknown as { linkedElementId?: string | null }).linkedElementId ? [(r as unknown as { linkedElementId: string }).linkedElementId] : []),
+        })),
+      };
       return {
         project: proj,
         history: [proj],
@@ -79,9 +85,10 @@ function projectReducer(state: State, action: Action): State {
           ...state.project,
           elements: state.project.elements.filter(el => el.id !== action.id),
           // Unlink rooms that referenced this element
-          rooms: (state.project.rooms || []).map(r =>
-            r.linkedElementId === action.id ? { ...r, linkedElementId: null } : r
-          ),
+          rooms: (state.project.rooms || []).map(r => ({
+            ...r,
+            linkedElementIds: (r.linkedElementIds || []).filter(eid => eid !== action.id),
+          })),
         }),
         selectedElementId: state.selectedElementId === action.id ? null : state.selectedElementId,
       };
@@ -179,7 +186,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const project = JSON.parse(saved) as FloorplanProject;
-        project.rooms = project.rooms || [];
+        project.rooms = (project.rooms || []).map(r => ({
+          ...r,
+          linkedElementIds: r.linkedElementIds || ((r as unknown as { linkedElementId?: string | null }).linkedElementId ? [(r as unknown as { linkedElementId: string }).linkedElementId] : []),
+        }));
         return { project, history: [project], historyIndex: 0, selectedElementId: null };
       }
     } catch { /* ignore */ }
