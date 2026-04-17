@@ -396,3 +396,83 @@ export async function exportProject(project: FloorplanProject): Promise<void> {
   const blob = await zip.generateAsync({ type: 'blob' });
   saveAs(blob, `${project.name.replace(/\s+/g, '-').toLowerCase()}-floorplan.zip`);
 }
+
+/**
+ * Import a previously exported ZIP. Reconstructs the FloorplanProject by reading
+ * `project/floorplan-project.json`. Falls back to YAML + background image if the
+ * project JSON is missing.
+ */
+export async function importProjectZip(file: File | Blob): Promise<FloorplanProject> {
+  const zip = await JSZip.loadAsync(file);
+
+  // Preferred path: full project JSON is included by the exporter
+  const projectFile = zip.file('project/floorplan-project.json');
+  if (projectFile) {
+    const text = await projectFile.async('string');
+    const proj = JSON.parse(text) as FloorplanProject;
+    proj.rooms = (proj.rooms || []).map(r => ({
+      ...r,
+      linkedElementIds:
+        r.linkedElementIds ||
+        ((r as unknown as { linkedElementId?: string | null }).linkedElementId
+          ? [(r as unknown as { linkedElementId: string }).linkedElementId]
+          : []),
+    }));
+    return proj;
+  }
+
+  // Fallback: rebuild from YAML + background image
+  const yamlFile = zip.file(/lovelace\/.*\.ya?ml$/i)[0];
+  if (!yamlFile) {
+    throw new Error("Lo ZIP non contiene né 'project/floorplan-project.json' né un file YAML in 'lovelace/'.");
+  }
+  const yamlText = await yamlFile.async('string');
+
+  // Find background image referenced in YAML (image: /local/floorplan/<filename>)
+  const bgMatch = yamlText.match(/^image:\s*\/local\/floorplan\/(.+)$/m);
+  let backgroundImage: FloorplanProject['backgroundImage'] = null;
+  if (bgMatch) {
+    const filename = bgMatch[1].trim();
+    const bgFile = zip.file(`www/floorplan/${filename}`);
+    if (bgFile) {
+      const blob = await bgFile.async('blob');
+      const dataUrl = await blobToDataUrl(blob);
+      const { width, height } = await getImageDimensions(dataUrl);
+      backgroundImage = {
+        filename,
+        originalWidth: width,
+        originalHeight: height,
+        dataUrl,
+      };
+    }
+  }
+
+  const rooms = parseRoomComments(yamlText);
+
+  return {
+    name: 'Imported Floorplan',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    backgroundImage,
+    elements: [], // YAML→elements parsing requires the dedicated parser; users can re-import YAML separately
+    rooms,
+  };
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error('Impossibile leggere le dimensioni dello sfondo'));
+    img.src = dataUrl;
+  });
+}
