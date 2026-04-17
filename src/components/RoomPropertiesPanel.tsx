@@ -122,21 +122,9 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
               </div>
             )}
           </div>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full h-8 text-xs gap-1"
-                onClick={onStartLink}
-              >
-                <Link className="h-3 w-3" /> Collega a un'icona
-              </Button>
-            )}
-          </div>
 
-          {/* Entity - only editable when NOT linked */}
-          {!linkedElement && (
+          {/* Entity - only editable when no icons are linked */}
+          {linkedElements.length === 0 && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Entity ID (manuale)</Label>
               <Input
