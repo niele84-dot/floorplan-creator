@@ -112,7 +112,7 @@ function generateRoomOverlayYAML(room: Room, elements: FloorplanElement[], inden
 
   // Room metadata comment for re-import
   const polygonJson = JSON.stringify(room.polygon.map(p => [+p.leftPct.toFixed(2), +p.topPct.toFixed(2)]));
-  lines.push(`${indent}# @room id=${room.id} name="${room.name}" polygon=${polygonJson} color=${room.overlayColor} linked=${room.linkedElementId || ''}`);
+  lines.push(`${indent}# @room id=${room.id} name="${room.name}" polygon=${polygonJson} color=${room.overlayColor} linked=${(room.linkedElementIds || []).join(',')}`);
 
   lines.push(`${indent}- type: image`);
   lines.push(`${indent}  entity: ${entity}`);
@@ -246,7 +246,9 @@ export function parseRoomComments(yamlText: string): Room[] {
         id: match[1],
         name: match[2],
         polygon: polygonArr.map(([left, top]) => ({ leftPct: left, topPct: top })),
-        linkedElementId: match[5].trim() || null,
+        linkedElementIds: match[5].trim()
+          ? match[5].trim().split(',').map(s => s.trim()).filter(Boolean)
+          : [],
         entity: '', // will be resolved from linked element
         overlayColor: match[4],
         zIndex: 0,
@@ -261,9 +263,14 @@ function generateReadme(project: FloorplanProject): string {
   const roomSection = rooms.length > 0
     ? `\n## Room Overlays\n\n${rooms.map(r => {
         const slug = r.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
-        const linkedEl = r.linkedElementId ? project.elements.find(el => el.id === r.linkedElementId) : null;
-        const entity = linkedEl?.ha.entity || r.entity || 'light.change_me';
-        return `- **${r.name}**: \`/local/floorplan/overlays/${slug}_glow.png\` → entity: \`${entity}\`${linkedEl ? ` (linked to icon: ${linkedEl.ha.icon || linkedEl.label || linkedEl.id.slice(0,8)})` : ''}`;
+        const ids = r.linkedElementIds || [];
+        const linkedEls = ids.map(id => project.elements.find(el => el.id === id)).filter(Boolean) as FloorplanElement[];
+        const primary = linkedEls[0];
+        const entity = primary?.ha.entity || r.entity || 'light.change_me';
+        const linkedDesc = linkedEls.length
+          ? ` (linked to ${linkedEls.length} icon${linkedEls.length > 1 ? 's' : ''}: ${linkedEls.map(el => el.ha.icon || el.label || el.id.slice(0, 8)).join(', ')})`
+          : '';
+        return `- **${r.name}**: \`/local/floorplan/overlays/${slug}_glow.png\` → entity: \`${entity}\`${linkedDesc}`;
       }).join('\n')}\n`
     : '';
 
