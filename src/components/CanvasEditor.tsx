@@ -609,25 +609,29 @@ export function CanvasEditor({
                   </>
                 )}
                 {/* Link lines between rooms and their linked icons */}
-                {rooms.filter(r => r.linkedElementId).map(room => {
-                  const linkedEl = project.elements.find(e => e.id === room.linkedElementId);
-                  if (!linkedEl) return null;
+                {rooms.flatMap(room => {
+                  const ids = room.linkedElementIds || [];
+                  if (!ids.length) return [];
                   const cx = room.polygon.reduce((s, p) => s + p.leftPct, 0) / room.polygon.length;
                   const cy = room.polygon.reduce((s, p) => s + p.topPct, 0) / room.polygon.length;
-                  return (
-                    <line
-                      key={`link-${room.id}`}
-                      x1={`${cx}%`}
-                      y1={`${cy}%`}
-                      x2={`${linkedEl.position.leftPct}%`}
-                      y2={`${linkedEl.position.topPct}%`}
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="1"
-                      strokeDasharray="4 2"
-                      strokeOpacity={selectedRoomId === room.id ? 0.8 : 0.3}
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  );
+                  return ids.map(eid => {
+                    const linkedEl = project.elements.find(e => e.id === eid);
+                    if (!linkedEl) return null;
+                    return (
+                      <line
+                        key={`link-${room.id}-${eid}`}
+                        x1={`${cx}%`}
+                        y1={`${cy}%`}
+                        x2={`${linkedEl.position.leftPct}%`}
+                        y2={`${linkedEl.position.topPct}%`}
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="1"
+                        strokeDasharray="4 2"
+                        strokeOpacity={selectedRoomId === room.id ? 0.8 : 0.3}
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    );
+                  });
                 })}
               </svg>
 
