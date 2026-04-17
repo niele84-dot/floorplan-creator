@@ -50,7 +50,7 @@ export interface Room {
   id: string;
   name: string;
   polygon: RoomPoint[];
-  linkedElementId: string | null;
+  linkedElementIds: string[];
   entity: string;
   overlayColor: string; // hex color for the glow
   zIndex: number;

@@ -19,13 +19,18 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
     dispatch({ type: 'UPDATE_ROOM', id: room.id, changes });
   };
 
-  const linkedElement = room.linkedElementId
-    ? project.elements.find(el => el.id === room.linkedElementId)
-    : null;
+  const linkedIds = room.linkedElementIds || [];
+  const linkedElements = linkedIds
+    .map(id => project.elements.find(el => el.id === id))
+    .filter((el): el is NonNullable<typeof el> => Boolean(el));
 
-  // Resolved entity: from linked icon or from room's own entity
-  const resolvedEntity = linkedElement?.ha.entity || room.entity;
-  const resolvedTapAction = linkedElement?.ha.tap_action || undefined;
+  // Primary linked element (first) is used for inheritance
+  const primary = linkedElements[0] || null;
+  const resolvedTapAction = primary?.ha.tap_action || undefined;
+
+  const removeLink = (id: string) => {
+    update({ linkedElementIds: linkedIds.filter(l => l !== id) });
+  };
 
   return (
     <div className="w-72 bg-card border-l border-border flex flex-col">
@@ -54,63 +59,72 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
             />
           </div>
 
-          {/* Linked Icon */}
+          {/* Linked Icons (multiple) */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Icona Collegata</Label>
-            {linkedElement ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 p-2 bg-secondary rounded text-xs">
-                  <Link className="h-3 w-3 text-primary flex-shrink-0" />
-                  <span className="flex-1 truncate font-mono">
-                    {linkedElement.ha.entity || linkedElement.ha.icon || linkedElement.label || linkedElement.id.slice(0, 8)}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 w-5 p-0"
-                    onClick={() => update({ linkedElementId: null })}
-                  >
-                    <Unlink className="h-3 w-3" />
-                  </Button>
-                </div>
-                {/* Inherited properties info */}
-                <div className="p-2 bg-primary/5 border border-primary/20 rounded space-y-1">
-                  <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                    <Info className="h-3 w-3" />
-                    Proprietà ereditate
+            <Label className="text-xs text-muted-foreground">
+              Icone Collegate {linkedElements.length > 0 && `(${linkedElements.length})`}
+            </Label>
+            {linkedElements.length > 0 && (
+              <div className="space-y-1">
+                {linkedElements.map((el, idx) => (
+                  <div key={el.id} className="flex items-center gap-2 p-2 bg-secondary rounded text-xs">
+                    <Link className="h-3 w-3 text-primary flex-shrink-0" />
+                    <span className="flex-1 truncate font-mono">
+                      {el.ha.entity || el.ha.icon || el.label || el.id.slice(0, 8)}
+                    </span>
+                    {idx === 0 && linkedElements.length > 1 && (
+                      <span className="text-[9px] uppercase font-semibold text-primary">primaria</span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0"
+                      onClick={() => removeLink(el.id)}
+                    >
+                      <Unlink className="h-3 w-3" />
+                    </Button>
                   </div>
-                  {linkedElement.ha.entity && (
-                    <div className="text-xs text-muted-foreground">
-                      Entity: <span className="font-mono text-foreground">{linkedElement.ha.entity}</span>
-                    </div>
-                  )}
-                  {linkedElement.ha.icon && (
-                    <div className="text-xs text-muted-foreground">
-                      Icona: <span className="font-mono text-foreground">{linkedElement.ha.icon}</span>
-                    </div>
-                  )}
-                  {resolvedTapAction && (
-                    <div className="text-xs text-muted-foreground">
-                      Tap: <span className="font-mono text-foreground">{resolvedTapAction.action}</span>
-                      {resolvedTapAction.service && <> → {resolvedTapAction.service}</>}
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full h-8 text-xs gap-1"
-                onClick={onStartLink}
-              >
-                <Link className="h-3 w-3" /> Collega a un'icona
-              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs gap-1"
+              onClick={onStartLink}
+            >
+              <Link className="h-3 w-3" />
+              {linkedElements.length > 0 ? 'Aggiungi/Rimuovi icone' : "Collega a un'icona"}
+            </Button>
+            {/* Inherited properties info */}
+            {primary && (
+              <div className="p-2 bg-primary/5 border border-primary/20 rounded space-y-1 mt-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                  <Info className="h-3 w-3" />
+                  Proprietà ereditate (dalla primaria)
+                </div>
+                {primary.ha.entity && (
+                  <div className="text-xs text-muted-foreground">
+                    Entity: <span className="font-mono text-foreground">{primary.ha.entity}</span>
+                  </div>
+                )}
+                {primary.ha.icon && (
+                  <div className="text-xs text-muted-foreground">
+                    Icona: <span className="font-mono text-foreground">{primary.ha.icon}</span>
+                  </div>
+                )}
+                {resolvedTapAction && (
+                  <div className="text-xs text-muted-foreground">
+                    Tap: <span className="font-mono text-foreground">{resolvedTapAction.action}</span>
+                    {resolvedTapAction.service && <> → {resolvedTapAction.service}</>}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Entity - only editable when NOT linked */}
-          {!linkedElement && (
+          {/* Entity - only editable when no icons are linked */}
+          {linkedElements.length === 0 && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Entity ID (manuale)</Label>
               <Input

@@ -87,7 +87,7 @@ export function CanvasEditor({
       id: crypto.randomUUID(),
       name: `Stanza ${(project.rooms || []).length + 1}`,
       polygon: drawingPoints,
-      linkedElementId: null,
+      linkedElementIds: [],
       entity: '',
       overlayColor: '#FFA500',
       zIndex: 0,
@@ -127,13 +127,22 @@ export function CanvasEditor({
     }
   };
 
-  // Linking mode: click on an icon to link it to a room
+  // Linking mode: click on an icon to toggle its association with a room
   const handleElementClick = (e: React.MouseEvent, el: FloorplanElement) => {
     if (linkingRoomId) {
       e.stopPropagation();
-      dispatch({ type: 'UPDATE_ROOM', id: linkingRoomId, changes: { linkedElementId: el.id } });
-      setLinkingRoomId(null);
-      toast.success(`Stanza collegata a ${el.ha.entity || el.label || el.ha.icon || 'elemento'}`);
+      const room = (project.rooms || []).find(r => r.id === linkingRoomId);
+      if (!room) { setLinkingRoomId(null); return; }
+      const current = room.linkedElementIds || [];
+      const isLinked = current.includes(el.id);
+      const next = isLinked ? current.filter(id => id !== el.id) : [...current, el.id];
+      dispatch({ type: 'UPDATE_ROOM', id: linkingRoomId, changes: { linkedElementIds: next } });
+      toast.success(
+        isLinked
+          ? `Icona scollegata da ${room.name}`
+          : `Icona collegata a ${room.name} (${next.length} totali)`
+      );
+      // Keep linking mode active so the user can add/remove more icons. ESC or clicking the chain icon closes it.
       return;
     }
   };
@@ -600,25 +609,29 @@ export function CanvasEditor({
                   </>
                 )}
                 {/* Link lines between rooms and their linked icons */}
-                {rooms.filter(r => r.linkedElementId).map(room => {
-                  const linkedEl = project.elements.find(e => e.id === room.linkedElementId);
-                  if (!linkedEl) return null;
+                {rooms.flatMap(room => {
+                  const ids = room.linkedElementIds || [];
+                  if (!ids.length) return [];
                   const cx = room.polygon.reduce((s, p) => s + p.leftPct, 0) / room.polygon.length;
                   const cy = room.polygon.reduce((s, p) => s + p.topPct, 0) / room.polygon.length;
-                  return (
-                    <line
-                      key={`link-${room.id}`}
-                      x1={`${cx}%`}
-                      y1={`${cy}%`}
-                      x2={`${linkedEl.position.leftPct}%`}
-                      y2={`${linkedEl.position.topPct}%`}
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="1"
-                      strokeDasharray="4 2"
-                      strokeOpacity={selectedRoomId === room.id ? 0.8 : 0.3}
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  );
+                  return ids.map(eid => {
+                    const linkedEl = project.elements.find(e => e.id === eid);
+                    if (!linkedEl) return null;
+                    return (
+                      <line
+                        key={`link-${room.id}-${eid}`}
+                        x1={`${cx}%`}
+                        y1={`${cy}%`}
+                        x2={`${linkedEl.position.leftPct}%`}
+                        y2={`${linkedEl.position.topPct}%`}
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="1"
+                        strokeDasharray="4 2"
+                        strokeOpacity={selectedRoomId === room.id ? 0.8 : 0.3}
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    );
+                  });
                 })}
               </svg>
 

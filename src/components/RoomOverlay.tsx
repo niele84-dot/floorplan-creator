@@ -89,14 +89,19 @@ export function RoomOverlay({
         >
           <button
             onClick={(e) => { e.stopPropagation(); onStartLink(); }}
-            className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-colors ${
-              room.linkedElementId
+            className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-colors relative ${
+              (room.linkedElementIds?.length ?? 0) > 0
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card text-muted-foreground hover:bg-accent'
             }`}
-            title={room.linkedElementId ? 'Cambia icona collegata' : 'Collega a un\'icona'}
+            title={(room.linkedElementIds?.length ?? 0) > 0 ? `Gestisci icone collegate (${room.linkedElementIds.length})` : 'Collega a un\'icona'}
           >
             <Link className="h-3 w-3" />
+            {(room.linkedElementIds?.length ?? 0) > 1 && (
+              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[8px] font-bold rounded-full h-3.5 w-3.5 flex items-center justify-center border border-card">
+                {room.linkedElementIds.length}
+              </span>
+            )}
           </button>
         </foreignObject>
       )}
