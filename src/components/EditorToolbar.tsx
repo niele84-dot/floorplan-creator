@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
-import { exportProject } from '@/lib/export';
+import { exportProject, importProjectZip } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge, Archive } from 'lucide-react';
 import { ImportYamlDialog } from '@/components/ImportYamlDialog';
 import { MergeYamlDialog } from '@/components/MergeYamlDialog';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ interface EditorToolbarProps {
 export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);
 
@@ -43,6 +44,20 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
       }
     };
     reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleImportZip = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const proj = await importProjectZip(file);
+      dispatch({ type: 'SET_PROJECT', project: proj });
+      toast.success(`ZIP importato: ${proj.elements.length} elementi, ${(proj.rooms || []).length} stanze`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore durante l\'import dello ZIP';
+      toast.error(msg);
+    }
     e.target.value = '';
   };
 
@@ -84,6 +99,11 @@ export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
           <FolderOpen className="h-3.5 w-3.5" /> Load
         </Button>
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleLoadProject} />
+
+        <Button variant="ghost" size="sm" onClick={() => zipInputRef.current?.click()} className="h-8 gap-1 text-xs">
+          <Archive className="h-3.5 w-3.5" /> Importa ZIP
+        </Button>
+        <input ref={zipInputRef} type="file" accept=".zip" className="hidden" onChange={handleImportZip} />
 
         <Button variant="ghost" size="sm" onClick={handleSaveJSON} className="h-8 gap-1 text-xs">
           <FileDown className="h-3.5 w-3.5" /> Save JSON
