@@ -10,7 +10,14 @@ import { YamlEditor } from '@/components/YamlEditor';
 import { LayerPanel } from '@/components/LayerPanel';
 import { useProject } from '@/contexts/ProjectContext';
 
-function EditorLayout() {
+interface EditorLayoutProps {
+  leftPanelCollapsed: boolean;
+  rightPanelCollapsed: boolean;
+  setLeftPanelCollapsed: (v: boolean) => void;
+  setRightPanelCollapsed: (v: boolean) => void;
+}
+
+function EditorLayout({ leftPanelCollapsed, rightPanelCollapsed, setLeftPanelCollapsed, setRightPanelCollapsed }: EditorLayoutProps) {
   const [showYaml, setShowYaml] = useState(false);
   const [drawingMode, setDrawingMode] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -31,17 +38,30 @@ function EditorLayout() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <EditorToolbar onToggleYaml={() => setShowYaml(v => !v)} showYaml={showYaml} />
+      <EditorToolbar 
+        onToggleYaml={() => setShowYaml(v => !v)} 
+        showYaml={showYaml}
+        leftPanelCollapsed={leftPanelCollapsed}
+        rightPanelCollapsed={rightPanelCollapsed}
+        onToggleLeftPanel={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+        onToggleRightPanel={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+      />
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-64 flex-shrink-0">
-          <IconPicker />
-        </div>
-        <LayerPanel
-          selectedRoomId={selectedRoomId}
-          setSelectedRoomId={handleSetSelectedRoomId}
-          isBackgroundSelected={isBackgroundSelected}
-          setBackgroundSelected={setBackgroundSelected}
-        />
+        {!leftPanelCollapsed && (
+          <div className="flex-shrink-0 flex">
+            <div className="w-64 flex-shrink-0 border-r border-border bg-card">
+              <IconPicker />
+            </div>
+            <div className="w-56 flex-shrink-0 border-r border-border bg-card">
+              <LayerPanel
+                selectedRoomId={selectedRoomId}
+                setSelectedRoomId={handleSetSelectedRoomId}
+                isBackgroundSelected={isBackgroundSelected}
+                setBackgroundSelected={setBackgroundSelected}
+              />
+            </div>
+          </div>
+        )}
         <CanvasEditor
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
@@ -53,19 +73,21 @@ function EditorLayout() {
           onElementSelected={() => setBackgroundSelected(false)}
           isBackgroundSelected={isBackgroundSelected}
         />
-        {showYaml ? (
-          <div className="w-80 flex-shrink-0">
-            <YamlEditor />
+        {!rightPanelCollapsed && (
+          <div className="w-80 flex-shrink-0 border-l border-border bg-card">
+            {showYaml ? (
+              <YamlEditor />
+            ) : isBackgroundSelected ? (
+              <BackgroundPropertiesPanel onUpload={() => bgUploadRef.current?.()} />
+            ) : selectedRoom ? (
+              <RoomPropertiesPanel
+                room={selectedRoom}
+                onStartLink={() => setLinkingRoomId(selectedRoom.id)}
+              />
+            ) : (
+              <PropertiesPanel />
+            )}
           </div>
-        ) : isBackgroundSelected ? (
-          <BackgroundPropertiesPanel onUpload={() => bgUploadRef.current?.()} />
-        ) : selectedRoom ? (
-          <RoomPropertiesPanel
-            room={selectedRoom}
-            onStartLink={() => setLinkingRoomId(selectedRoom.id)}
-          />
-        ) : (
-          <PropertiesPanel />
         )}
       </div>
     </div>
@@ -73,9 +95,17 @@ function EditorLayout() {
 }
 
 const Index = () => {
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+
   return (
     <ProjectProvider>
-      <EditorLayout />
+      <EditorLayout 
+        leftPanelCollapsed={leftPanelCollapsed}
+        rightPanelCollapsed={rightPanelCollapsed}
+        setLeftPanelCollapsed={setLeftPanelCollapsed}
+        setRightPanelCollapsed={setRightPanelCollapsed}
+      />
     </ProjectProvider>
   );
 };
