@@ -74,28 +74,33 @@ function generateElementYAML(el: FloorplanElement, indent: string): string {
   return lines.join('\n');
 }
 
-function getLinkedEntity(room: Room, elements: FloorplanElement[]): string {
-  if (room.linkedElementId) {
-    const linked = elements.find(el => el.id === room.linkedElementId);
-    if (linked?.ha.entity) return linked.ha.entity;
+function getPrimaryLinked(room: Room, elements: FloorplanElement[]): FloorplanElement | undefined {
+  const ids = room.linkedElementIds || [];
+  for (const id of ids) {
+    const el = elements.find(e => e.id === id);
+    if (el) return el;
   }
+  return undefined;
+}
+
+function getLinkedEntity(room: Room, elements: FloorplanElement[]): string {
+  const linked = getPrimaryLinked(room, elements);
+  if (linked?.ha.entity) return linked.ha.entity;
   return room.entity || 'light.change_me';
 }
 
 function getLinkedTapAction(room: Room, elements: FloorplanElement[]): string {
-  if (room.linkedElementId) {
-    const linked = elements.find(el => el.id === room.linkedElementId);
-    if (linked?.ha.tap_action) {
-      const lines: string[] = [];
-      lines.push(`    action: ${linked.ha.tap_action.action}`);
-      if (linked.ha.tap_action.navigation_path) {
-        lines.push(`    navigation_path: ${linked.ha.tap_action.navigation_path}`);
-      }
-      if (linked.ha.tap_action.service) {
-        lines.push(`    service: ${linked.ha.tap_action.service}`);
-      }
-      return lines.join('\n');
+  const linked = getPrimaryLinked(room, elements);
+  if (linked?.ha.tap_action) {
+    const lines: string[] = [];
+    lines.push(`    action: ${linked.ha.tap_action.action}`);
+    if (linked.ha.tap_action.navigation_path) {
+      lines.push(`    navigation_path: ${linked.ha.tap_action.navigation_path}`);
     }
+    if (linked.ha.tap_action.service) {
+      lines.push(`    service: ${linked.ha.tap_action.service}`);
+    }
+    return lines.join('\n');
   }
   return '    action: toggle';
 }
