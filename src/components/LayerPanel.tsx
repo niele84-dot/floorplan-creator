@@ -17,11 +17,7 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId, isBackgroundSele
   const elements = [...project.elements].sort((a, b) => b.zIndex - a.zIndex);
 
   return (
-    <div className="w-56 flex-shrink-0 border-r border-border bg-card flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-border flex items-center gap-1.5">
-        <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs font-semibold text-foreground">Livelli</span>
-      </div>
+    <div className="flex flex-col h-full">
       <ScrollArea className="flex-1">
         {/* Background layer */}
         <div className="px-2 pt-2">

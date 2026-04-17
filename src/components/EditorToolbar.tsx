@@ -4,7 +4,7 @@ import { exportProject } from '@/lib/export';
 import { FloorplanProject } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge, PanelLeft, PanelRight } from 'lucide-react';
+import { Download, Upload, Undo2, Redo2, FileDown, FolderOpen, Code, ClipboardPaste, GitMerge } from 'lucide-react';
 import { ImportYamlDialog } from '@/components/ImportYamlDialog';
 import { MergeYamlDialog } from '@/components/MergeYamlDialog';
 import { toast } from 'sonner';
@@ -12,20 +12,9 @@ import { toast } from 'sonner';
 interface EditorToolbarProps {
   onToggleYaml?: () => void;
   showYaml?: boolean;
-  leftPanelCollapsed?: boolean;
-  rightPanelCollapsed?: boolean;
-  onToggleLeftPanel?: () => void;
-  onToggleRightPanel?: () => void;
 }
 
-export function EditorToolbar({ 
-  onToggleYaml, 
-  showYaml, 
-  leftPanelCollapsed, 
-  rightPanelCollapsed,
-  onToggleLeftPanel,
-  onToggleRightPanel 
-}: EditorToolbarProps) {
+export function EditorToolbar({ onToggleYaml, showYaml }: EditorToolbarProps) {
   const { project, dispatch, canUndo, canRedo } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -82,27 +71,6 @@ export function EditorToolbar({
       <div className="flex-1" />
 
       <div className="flex items-center gap-1">
-        <Button 
-          variant={leftPanelCollapsed ? 'ghost' : 'secondary'} 
-          size="sm" 
-          onClick={onToggleLeftPanel} 
-          className="h-8 gap-1 text-xs"
-          title={leftPanelCollapsed ? 'Mostra pannello sinistro' : 'Nascondi pannello sinistro'}
-        >
-          <PanelLeft className="h-3.5 w-3.5" />
-        </Button>
-        <Button 
-          variant={rightPanelCollapsed ? 'ghost' : 'secondary'} 
-          size="sm" 
-          onClick={onToggleRightPanel} 
-          className="h-8 gap-1 text-xs"
-          title={rightPanelCollapsed ? 'Mostra pannello destro' : 'Nascondi pannello destro'}
-        >
-          <PanelRight className="h-3.5 w-3.5" />
-        </Button>
-
-        <div className="w-px h-5 bg-border mx-1" />
-
         <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'UNDO' })} disabled={!canUndo} className="h-8 gap-1 text-xs">
           <Undo2 className="h-3.5 w-3.5" /> Undo
         </Button>
