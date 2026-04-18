@@ -653,15 +653,33 @@ export function CanvasEditor({
               {/* Elements */}
               {project.elements
                 .sort((a, b) => a.zIndex - b.zIndex)
-                .map(el => (
+                .map(el => {
+                  // Determine link-mode visual state
+                  let linkClass = '';
+                  if (linkingState) {
+                    const room = (project.rooms || []).find(r => r.id === linkingState.roomId);
+                    const isLinked = !!room?.linkedElementIds?.includes(el.id);
+                    if (linkingState.mode === 'add') {
+                      // Highlight only icons NOT yet linked (eligible to add)
+                      linkClass = isLinked
+                        ? 'opacity-30 ring-1 ring-muted cursor-not-allowed'
+                        : 'ring-2 ring-cyan-400 ring-offset-1 animate-pulse cursor-pointer';
+                    } else {
+                      // Remove mode: highlight ONLY linked icons
+                      linkClass = isLinked
+                        ? 'ring-2 ring-destructive ring-offset-1 animate-pulse cursor-pointer'
+                        : 'opacity-30 cursor-not-allowed';
+                    }
+                  } else if (selectedElementId === el.id) {
+                    linkClass = 'ring-2 ring-primary rounded-sm shadow-lg';
+                  } else {
+                    linkClass = 'hover:ring-1 hover:ring-primary/50 rounded-sm';
+                  }
+
+                  return (
                   <div
                     key={el.id}
-                    className={`absolute cursor-move select-none transition-shadow ${
-                      linkingRoomId ? 'ring-2 ring-cyan-400 ring-offset-1 animate-pulse cursor-pointer' :
-                      selectedElementId === el.id
-                        ? 'ring-2 ring-primary rounded-sm shadow-lg'
-                        : 'hover:ring-1 hover:ring-primary/50 rounded-sm'
-                    }`}
+                    className={`absolute cursor-move select-none transition-shadow ${linkClass}`}
                     style={{
                       left: `${el.position.leftPct}%`,
                       top: `${el.position.topPct}%`,
@@ -693,7 +711,8 @@ export function CanvasEditor({
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         )}
