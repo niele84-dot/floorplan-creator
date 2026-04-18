@@ -132,22 +132,30 @@ export function CanvasEditor({
     }
   };
 
-  // Linking mode: click on an icon to toggle its association with a room
+  // Linking mode: click on an icon to add or remove its association with a room
   const handleElementClick = (e: React.MouseEvent, el: FloorplanElement) => {
-    if (linkingRoomId) {
+    if (linkingState) {
       e.stopPropagation();
-      const room = (project.rooms || []).find(r => r.id === linkingRoomId);
-      if (!room) { setLinkingRoomId(null); return; }
+      const room = (project.rooms || []).find(r => r.id === linkingState.roomId);
+      if (!room) { setLinkingState(null); return; }
       const current = room.linkedElementIds || [];
       const isLinked = current.includes(el.id);
-      const next = isLinked ? current.filter(id => id !== el.id) : [...current, el.id];
-      dispatch({ type: 'UPDATE_ROOM', id: linkingRoomId, changes: { linkedElementIds: next } });
-      toast.success(
-        isLinked
-          ? `Icona scollegata da ${room.name}`
-          : `Icona collegata a ${room.name} (${next.length} totali)`
-      );
-      // Keep linking mode active so the user can add/remove more icons. ESC or clicking the chain icon closes it.
+
+      if (linkingState.mode === 'add') {
+        if (isLinked) {
+          toast.info('Icona già collegata a questa stanza');
+          return;
+        }
+        const next = [...current, el.id];
+        dispatch({ type: 'UPDATE_ROOM', id: linkingState.roomId, changes: { linkedElementIds: next } });
+        toast.success(`Icona collegata a ${room.name} (${next.length} totali)`);
+      } else {
+        if (!isLinked) return; // ignore clicks on non-linked icons
+        const next = current.filter(id => id !== el.id);
+        dispatch({ type: 'UPDATE_ROOM', id: linkingState.roomId, changes: { linkedElementIds: next } });
+        toast.success(`Icona scollegata da ${room.name}`);
+        if (next.length === 0) setLinkingState(null);
+      }
       return;
     }
   };
