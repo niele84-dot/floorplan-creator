@@ -103,7 +103,8 @@ function EditorLayout() {
           ) : selectedRoom ? (
             <RoomPropertiesPanel
               room={selectedRoom}
-              onStartLink={() => setLinkingRoomId(selectedRoom.id)}
+              onStartAddLink={() => setLinkingState({ roomId: selectedRoom.id, mode: 'add' })}
+              onStartRemoveLink={() => setLinkingState({ roomId: selectedRoom.id, mode: 'remove' })}
             />
           ) : (
             <PropertiesPanel />
