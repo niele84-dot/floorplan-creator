@@ -252,7 +252,7 @@ export function CanvasEditor({
   }, [dispatch]);
 
   const handleElementMouseDown = (e: React.MouseEvent, el: FloorplanElement) => {
-    if (drawingMode || linkingRoomId) return;
+    if (drawingMode || linkingState) return;
     e.stopPropagation();
     setSelectedElementId(el.id);
     onElementSelected?.();
@@ -325,13 +325,13 @@ export function CanvasEditor({
         setDrawingPoints([]);
         setDrawingMode(false);
       }
-      if (e.key === 'Escape' && linkingRoomId) {
-        setLinkingRoomId(null);
+      if (e.key === 'Escape' && linkingState) {
+        setLinkingState(null);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [drawingMode, linkingRoomId]);
+  }, [drawingMode, linkingState]);
 
   // Keyboard shortcuts for elements
   useEffect(() => {
@@ -486,9 +486,11 @@ export function CanvasEditor({
             {drawingPoints.length} punti — doppio-click o click sul primo per chiudere
           </span>
         )}
-        {linkingRoomId && (
-          <span className="text-xs text-primary ml-2 animate-pulse">
-            🔗 Clicca su un'icona per collegare la stanza
+        {linkingState && (
+          <span className={`text-xs ml-2 animate-pulse ${linkingState.mode === 'add' ? 'text-primary' : 'text-destructive'}`}>
+            {linkingState.mode === 'add'
+              ? "🔗 Clicca su un'icona per AGGIUNGERLA alla stanza (ESC per uscire)"
+              : "✂️ Clicca su un'icona evidenziata per RIMUOVERLA dalla stanza (ESC per uscire)"}
           </span>
         )}
       </div>
@@ -496,7 +498,7 @@ export function CanvasEditor({
       {/* Canvas */}
       <div
         ref={containerRef}
-        className={`flex-1 overflow-hidden relative ${drawingMode ? 'cursor-crosshair' : linkingRoomId ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`flex-1 overflow-hidden relative ${drawingMode ? 'cursor-crosshair' : linkingState ? 'cursor-pointer' : 'cursor-default'}`}
         onMouseDown={handleCanvasMouseDown}
         onWheel={handleWheel}
         onDragOver={handleDragOver}
@@ -568,7 +570,7 @@ export function CanvasEditor({
                     key={room.id}
                     room={room}
                     isSelected={selectedRoomId === room.id}
-                    isLinkTarget={linkingRoomId === room.id}
+                    isLinkTarget={linkingState?.roomId === room.id}
                     showVertices={selectedRoomId === room.id && !drawingMode}
                     onSelect={() => {
                       if (drawingMode) return;
@@ -576,7 +578,7 @@ export function CanvasEditor({
                       setSelectedElementId(null);
                     }}
                     onStartLink={() => {
-                      setLinkingRoomId(room.id);
+                      setLinkingState({ roomId: room.id, mode: 'add' });
                     }}
                     onVertexDrag={(idx, left, top) => handleRoomVertexDrag(room.id, idx, left, top)}
                   />
