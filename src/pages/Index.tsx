@@ -16,7 +16,7 @@ function EditorLayout() {
   const [showYaml, setShowYaml] = useState(false);
   const [drawingMode, setDrawingMode] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [linkingRoomId, setLinkingRoomId] = useState<string | null>(null);
+  const [linkingState, setLinkingState] = useState<{ roomId: string; mode: 'add' | 'remove' } | null>(null);
   const [isBackgroundSelected, setBackgroundSelected] = useState(false);
   const bgUploadRef = useRef<(() => void) | null>(null);
 
