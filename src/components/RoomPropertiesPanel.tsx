@@ -5,14 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Link, Unlink, Info } from 'lucide-react';
+import { Trash2, Link, Unlink, Info, Plus, Minus } from 'lucide-react';
 
 interface RoomPropertiesPanelProps {
   room: Room;
-  onStartLink: () => void;
+  onStartAddLink: () => void;
+  onStartRemoveLink: () => void;
 }
 
-export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelProps) {
+export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }: RoomPropertiesPanelProps) {
   const { project, dispatch } = useProject();
 
   const update = (changes: Partial<Room>) => {
