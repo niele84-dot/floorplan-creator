@@ -88,15 +88,27 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
                 ))}
               </div>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full h-8 text-xs gap-1"
-              onClick={onStartLink}
-            >
-              <Link className="h-3 w-3" />
-              {linkedElements.length > 0 ? 'Aggiungi/Rimuovi icone' : "Collega a un'icona"}
-            </Button>
+            <div className="grid grid-cols-2 gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1"
+                onClick={onStartAddLink}
+              >
+                <Plus className="h-3 w-3" />
+                Aggiungi
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1"
+                onClick={onStartRemoveLink}
+                disabled={linkedElements.length === 0}
+              >
+                <Minus className="h-3 w-3" />
+                Rimuovi
+              </Button>
+            </div>
             {/* Inherited properties info */}
             {primary && (
               <div className="p-2 bg-primary/5 border border-primary/20 rounded space-y-1 mt-2">
