@@ -7,13 +7,18 @@ import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
 import { toast } from 'sonner';
 
+interface LinkingState {
+  roomId: string;
+  mode: 'add' | 'remove';
+}
+
 interface CanvasEditorProps {
   drawingMode: boolean;
   setDrawingMode: (v: boolean) => void;
   selectedRoomId: string | null;
   setSelectedRoomId: (id: string | null) => void;
-  linkingRoomId: string | null;
-  setLinkingRoomId: (id: string | null) => void;
+  linkingState: LinkingState | null;
+  setLinkingState: (s: LinkingState | null) => void;
   onBgUploadRef?: (fn: () => void) => void;
   onElementSelected?: () => void;
   isBackgroundSelected?: boolean;
@@ -24,8 +29,8 @@ export function CanvasEditor({
   setDrawingMode,
   selectedRoomId,
   setSelectedRoomId,
-  linkingRoomId,
-  setLinkingRoomId,
+  linkingState,
+  setLinkingState,
   onBgUploadRef,
   onElementSelected,
   isBackgroundSelected,
