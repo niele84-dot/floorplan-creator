@@ -81,8 +81,8 @@ function EditorLayout() {
           setDrawingMode={setDrawingMode}
           selectedRoomId={selectedRoomId}
           setSelectedRoomId={handleSetSelectedRoomId}
-          linkingRoomId={linkingRoomId}
-          setLinkingRoomId={setLinkingRoomId}
+          linkingState={linkingState}
+          setLinkingState={setLinkingState}
           onBgUploadRef={(fn) => { bgUploadRef.current = fn; }}
           onElementSelected={() => setBackgroundSelected(false)}
           isBackgroundSelected={isBackgroundSelected}
