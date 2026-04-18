@@ -7,13 +7,18 @@ import { Toggle } from '@/components/ui/toggle';
 import { RoomOverlay } from '@/components/RoomOverlay';
 import { toast } from 'sonner';
 
+interface LinkingState {
+  roomId: string;
+  mode: 'add' | 'remove';
+}
+
 interface CanvasEditorProps {
   drawingMode: boolean;
   setDrawingMode: (v: boolean) => void;
   selectedRoomId: string | null;
   setSelectedRoomId: (id: string | null) => void;
-  linkingRoomId: string | null;
-  setLinkingRoomId: (id: string | null) => void;
+  linkingState: LinkingState | null;
+  setLinkingState: (s: LinkingState | null) => void;
   onBgUploadRef?: (fn: () => void) => void;
   onElementSelected?: () => void;
   isBackgroundSelected?: boolean;
@@ -24,8 +29,8 @@ export function CanvasEditor({
   setDrawingMode,
   selectedRoomId,
   setSelectedRoomId,
-  linkingRoomId,
-  setLinkingRoomId,
+  linkingState,
+  setLinkingState,
   onBgUploadRef,
   onElementSelected,
   isBackgroundSelected,
@@ -127,22 +132,30 @@ export function CanvasEditor({
     }
   };
 
-  // Linking mode: click on an icon to toggle its association with a room
+  // Linking mode: click on an icon to add or remove its association with a room
   const handleElementClick = (e: React.MouseEvent, el: FloorplanElement) => {
-    if (linkingRoomId) {
+    if (linkingState) {
       e.stopPropagation();
-      const room = (project.rooms || []).find(r => r.id === linkingRoomId);
-      if (!room) { setLinkingRoomId(null); return; }
+      const room = (project.rooms || []).find(r => r.id === linkingState.roomId);
+      if (!room) { setLinkingState(null); return; }
       const current = room.linkedElementIds || [];
       const isLinked = current.includes(el.id);
-      const next = isLinked ? current.filter(id => id !== el.id) : [...current, el.id];
-      dispatch({ type: 'UPDATE_ROOM', id: linkingRoomId, changes: { linkedElementIds: next } });
-      toast.success(
-        isLinked
-          ? `Icona scollegata da ${room.name}`
-          : `Icona collegata a ${room.name} (${next.length} totali)`
-      );
-      // Keep linking mode active so the user can add/remove more icons. ESC or clicking the chain icon closes it.
+
+      if (linkingState.mode === 'add') {
+        if (isLinked) {
+          toast.info('Icona già collegata a questa stanza');
+          return;
+        }
+        const next = [...current, el.id];
+        dispatch({ type: 'UPDATE_ROOM', id: linkingState.roomId, changes: { linkedElementIds: next } });
+        toast.success(`Icona collegata a ${room.name} (${next.length} totali)`);
+      } else {
+        if (!isLinked) return; // ignore clicks on non-linked icons
+        const next = current.filter(id => id !== el.id);
+        dispatch({ type: 'UPDATE_ROOM', id: linkingState.roomId, changes: { linkedElementIds: next } });
+        toast.success(`Icona scollegata da ${room.name}`);
+        if (next.length === 0) setLinkingState(null);
+      }
       return;
     }
   };
@@ -239,7 +252,7 @@ export function CanvasEditor({
   }, [dispatch]);
 
   const handleElementMouseDown = (e: React.MouseEvent, el: FloorplanElement) => {
-    if (drawingMode || linkingRoomId) return;
+    if (drawingMode || linkingState) return;
     e.stopPropagation();
     setSelectedElementId(el.id);
     onElementSelected?.();
@@ -312,13 +325,13 @@ export function CanvasEditor({
         setDrawingPoints([]);
         setDrawingMode(false);
       }
-      if (e.key === 'Escape' && linkingRoomId) {
-        setLinkingRoomId(null);
+      if (e.key === 'Escape' && linkingState) {
+        setLinkingState(null);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [drawingMode, linkingRoomId]);
+  }, [drawingMode, linkingState]);
 
   // Keyboard shortcuts for elements
   useEffect(() => {
@@ -473,9 +486,11 @@ export function CanvasEditor({
             {drawingPoints.length} punti — doppio-click o click sul primo per chiudere
           </span>
         )}
-        {linkingRoomId && (
-          <span className="text-xs text-primary ml-2 animate-pulse">
-            🔗 Clicca su un'icona per collegare la stanza
+        {linkingState && (
+          <span className={`text-xs ml-2 animate-pulse ${linkingState.mode === 'add' ? 'text-primary' : 'text-destructive'}`}>
+            {linkingState.mode === 'add'
+              ? "🔗 Clicca su un'icona per AGGIUNGERLA alla stanza (ESC per uscire)"
+              : "✂️ Clicca su un'icona evidenziata per RIMUOVERLA dalla stanza (ESC per uscire)"}
           </span>
         )}
       </div>
@@ -483,7 +498,7 @@ export function CanvasEditor({
       {/* Canvas */}
       <div
         ref={containerRef}
-        className={`flex-1 overflow-hidden relative ${drawingMode ? 'cursor-crosshair' : linkingRoomId ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`flex-1 overflow-hidden relative ${drawingMode ? 'cursor-crosshair' : linkingState ? 'cursor-pointer' : 'cursor-default'}`}
         onMouseDown={handleCanvasMouseDown}
         onWheel={handleWheel}
         onDragOver={handleDragOver}
@@ -555,7 +570,7 @@ export function CanvasEditor({
                     key={room.id}
                     room={room}
                     isSelected={selectedRoomId === room.id}
-                    isLinkTarget={linkingRoomId === room.id}
+                    isLinkTarget={linkingState?.roomId === room.id}
                     showVertices={selectedRoomId === room.id && !drawingMode}
                     onSelect={() => {
                       if (drawingMode) return;
@@ -563,7 +578,7 @@ export function CanvasEditor({
                       setSelectedElementId(null);
                     }}
                     onStartLink={() => {
-                      setLinkingRoomId(room.id);
+                      setLinkingState({ roomId: room.id, mode: 'add' });
                     }}
                     onVertexDrag={(idx, left, top) => handleRoomVertexDrag(room.id, idx, left, top)}
                   />
@@ -638,15 +653,33 @@ export function CanvasEditor({
               {/* Elements */}
               {project.elements
                 .sort((a, b) => a.zIndex - b.zIndex)
-                .map(el => (
+                .map(el => {
+                  // Determine link-mode visual state
+                  let linkClass = '';
+                  if (linkingState) {
+                    const room = (project.rooms || []).find(r => r.id === linkingState.roomId);
+                    const isLinked = !!room?.linkedElementIds?.includes(el.id);
+                    if (linkingState.mode === 'add') {
+                      // Highlight only icons NOT yet linked (eligible to add)
+                      linkClass = isLinked
+                        ? 'opacity-30 ring-1 ring-muted cursor-not-allowed'
+                        : 'ring-2 ring-cyan-400 ring-offset-1 animate-pulse cursor-pointer';
+                    } else {
+                      // Remove mode: highlight ONLY linked icons
+                      linkClass = isLinked
+                        ? 'ring-2 ring-destructive ring-offset-1 animate-pulse cursor-pointer'
+                        : 'opacity-30 cursor-not-allowed';
+                    }
+                  } else if (selectedElementId === el.id) {
+                    linkClass = 'ring-2 ring-primary rounded-sm shadow-lg';
+                  } else {
+                    linkClass = 'hover:ring-1 hover:ring-primary/50 rounded-sm';
+                  }
+
+                  return (
                   <div
                     key={el.id}
-                    className={`absolute cursor-move select-none transition-shadow ${
-                      linkingRoomId ? 'ring-2 ring-cyan-400 ring-offset-1 animate-pulse cursor-pointer' :
-                      selectedElementId === el.id
-                        ? 'ring-2 ring-primary rounded-sm shadow-lg'
-                        : 'hover:ring-1 hover:ring-primary/50 rounded-sm'
-                    }`}
+                    className={`absolute cursor-move select-none transition-shadow ${linkClass}`}
                     style={{
                       left: `${el.position.leftPct}%`,
                       top: `${el.position.topPct}%`,
@@ -678,7 +711,8 @@ export function CanvasEditor({
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         )}

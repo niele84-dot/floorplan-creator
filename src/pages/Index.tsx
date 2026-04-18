@@ -16,7 +16,7 @@ function EditorLayout() {
   const [showYaml, setShowYaml] = useState(false);
   const [drawingMode, setDrawingMode] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [linkingRoomId, setLinkingRoomId] = useState<string | null>(null);
+  const [linkingState, setLinkingState] = useState<{ roomId: string; mode: 'add' | 'remove' } | null>(null);
   const [isBackgroundSelected, setBackgroundSelected] = useState(false);
   const bgUploadRef = useRef<(() => void) | null>(null);
 
@@ -81,8 +81,8 @@ function EditorLayout() {
           setDrawingMode={setDrawingMode}
           selectedRoomId={selectedRoomId}
           setSelectedRoomId={handleSetSelectedRoomId}
-          linkingRoomId={linkingRoomId}
-          setLinkingRoomId={setLinkingRoomId}
+          linkingState={linkingState}
+          setLinkingState={setLinkingState}
           onBgUploadRef={(fn) => { bgUploadRef.current = fn; }}
           onElementSelected={() => setBackgroundSelected(false)}
           isBackgroundSelected={isBackgroundSelected}
@@ -103,7 +103,8 @@ function EditorLayout() {
           ) : selectedRoom ? (
             <RoomPropertiesPanel
               room={selectedRoom}
-              onStartLink={() => setLinkingRoomId(selectedRoom.id)}
+              onStartAddLink={() => setLinkingState({ roomId: selectedRoom.id, mode: 'add' })}
+              onStartRemoveLink={() => setLinkingState({ roomId: selectedRoom.id, mode: 'remove' })}
             />
           ) : (
             <PropertiesPanel />

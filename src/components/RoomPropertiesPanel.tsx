@@ -5,14 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Link, Unlink, Info } from 'lucide-react';
+import { Trash2, Link, Unlink, Info, Plus, Minus } from 'lucide-react';
 
 interface RoomPropertiesPanelProps {
   room: Room;
-  onStartLink: () => void;
+  onStartAddLink: () => void;
+  onStartRemoveLink: () => void;
 }
 
-export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelProps) {
+export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }: RoomPropertiesPanelProps) {
   const { project, dispatch } = useProject();
 
   const update = (changes: Partial<Room>) => {
@@ -87,15 +88,27 @@ export function RoomPropertiesPanel({ room, onStartLink }: RoomPropertiesPanelPr
                 ))}
               </div>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full h-8 text-xs gap-1"
-              onClick={onStartLink}
-            >
-              <Link className="h-3 w-3" />
-              {linkedElements.length > 0 ? 'Aggiungi/Rimuovi icone' : "Collega a un'icona"}
-            </Button>
+            <div className="grid grid-cols-2 gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1"
+                onClick={onStartAddLink}
+              >
+                <Plus className="h-3 w-3" />
+                Aggiungi
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1"
+                onClick={onStartRemoveLink}
+                disabled={linkedElements.length === 0}
+              >
+                <Minus className="h-3 w-3" />
+                Rimuovi
+              </Button>
+            </div>
             {/* Inherited properties info */}
             {primary && (
               <div className="p-2 bg-primary/5 border border-primary/20 rounded space-y-1 mt-2">
