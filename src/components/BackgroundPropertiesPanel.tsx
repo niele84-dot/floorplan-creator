@@ -16,7 +16,7 @@ export function BackgroundPropertiesPanel({ onUpload }: BackgroundPropertiesPane
 
   if (!bg) {
     return (
-      <div className="w-72 bg-card border-l border-border flex items-center justify-center p-4">
+      <div className="w-full h-full bg-card flex items-center justify-center p-4">
         <div className="text-center space-y-3">
           <p className="text-xs text-muted-foreground">Nessuno sfondo caricato</p>
           <Button variant="outline" size="sm" onClick={onUpload} className="gap-1.5">
@@ -37,7 +37,7 @@ export function BackgroundPropertiesPanel({ onUpload }: BackgroundPropertiesPane
   };
 
   return (
-    <div className="w-72 bg-card border-l border-border flex flex-col">
+    <div className="w-full h-full bg-card flex flex-col">
       <div className="p-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Sfondo</h2>
         <div className="flex gap-1">

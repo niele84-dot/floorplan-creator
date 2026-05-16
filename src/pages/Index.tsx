@@ -55,7 +55,7 @@ function EditorLayout() {
           icon={Shapes}
           collapsed={iconsCollapsed}
           onToggle={() => setIconsCollapsed(v => !v)}
-          width="w-64"
+          width="w-52"
         >
           <IconPicker />
         </CollapsiblePanel>
@@ -66,7 +66,7 @@ function EditorLayout() {
           icon={Layers}
           collapsed={layersCollapsed}
           onToggle={() => setLayersCollapsed(v => !v)}
-          width="w-56"
+          width="w-44"
         >
           <LayerPanel
             selectedRoomId={selectedRoomId}
@@ -94,7 +94,7 @@ function EditorLayout() {
           icon={rightPanelIcon}
           collapsed={propsCollapsed}
           onToggle={() => setPropsCollapsed(v => !v)}
-          width="w-80"
+          width="w-72"
         >
           {showYaml ? (
             <YamlEditor />
