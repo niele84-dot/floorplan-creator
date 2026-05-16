@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Trash2, Copy, ArrowUp, ArrowDown, RotateCw, Lock, Unlock } from 'lucide-react';
+import { NumberStepper } from '@/components/ui/number-stepper';
 
 const ELEMENT_TYPES: { value: ElementType; label: string }[] = [
   { value: 'state-icon', label: 'State Icon' },
