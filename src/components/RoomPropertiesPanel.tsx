@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Link, Unlink, Info, Plus, Minus } from 'lucide-react';
+import { NumberStepper } from '@/components/ui/number-stepper';
 
 interface RoomPropertiesPanelProps {
   room: Room;
@@ -33,6 +34,23 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
     update({ linkedElementIds: linkedIds.filter(l => l !== id) });
   };
 
+  // Centroid (average of vertices) used as room position handle
+  const centroid = room.polygon.length > 0
+    ? {
+        leftPct: room.polygon.reduce((s, p) => s + p.leftPct, 0) / room.polygon.length,
+        topPct: room.polygon.reduce((s, p) => s + p.topPct, 0) / room.polygon.length,
+      }
+    : { leftPct: 50, topPct: 50 };
+
+  const movePolygon = (deltaLeft: number, deltaTop: number) => {
+    update({
+      polygon: room.polygon.map(p => ({
+        leftPct: Math.max(0, Math.min(100, p.leftPct + deltaLeft)),
+        topPct: Math.max(0, Math.min(100, p.topPct + deltaTop)),
+      })),
+    });
+  };
+
   return (
     <div className="w-72 bg-card border-l border-border flex flex-col">
       <div className="p-3 border-b border-border flex items-center justify-between">
@@ -58,6 +76,35 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
               placeholder="Camera da letto"
               className="h-8 text-xs bg-secondary"
             />
+          </div>
+
+          {/* Position (move whole polygon) */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Posizione (centro)</Label>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Left %</span>
+                <NumberStepper
+                  value={Number(centroid.leftPct.toFixed(2))}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => movePolygon(v - centroid.leftPct, 0)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Top %</span>
+                <NumberStepper
+                  value={Number(centroid.topPct.toFixed(2))}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => movePolygon(0, v - centroid.topPct)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Linked Icons (multiple) */}

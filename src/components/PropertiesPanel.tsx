@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Trash2, Copy, ArrowUp, ArrowDown, RotateCw, Lock, Unlock } from 'lucide-react';
+import { NumberStepper } from '@/components/ui/number-stepper';
 
 const ELEMENT_TYPES: { value: ElementType; label: string }[] = [
   { value: 'state-icon', label: 'State Icon' },
@@ -98,24 +99,31 @@ export function PropertiesPanel() {
           </div>
 
           {/* Position */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Posizione</Label>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Left %</Label>
-              <Input
-                type="number" min={0} max={100} step={0.1}
-                value={element.position.leftPct}
-                onChange={e => update({ position: { ...element.position, leftPct: Number(e.target.value) } })}
-                className="h-8 text-xs bg-secondary font-mono"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Top %</Label>
-              <Input
-                type="number" min={0} max={100} step={0.1}
-                value={element.position.topPct}
-                onChange={e => update({ position: { ...element.position, topPct: Number(e.target.value) } })}
-                className="h-8 text-xs bg-secondary font-mono"
-              />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Left %</span>
+                <NumberStepper
+                  value={element.position.leftPct}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => update({ position: { ...element.position, leftPct: v } })}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Top %</span>
+                <NumberStepper
+                  value={element.position.topPct}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => update({ position: { ...element.position, topPct: v } })}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
 
