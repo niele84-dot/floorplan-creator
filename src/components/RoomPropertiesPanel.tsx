@@ -78,6 +78,35 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
             />
           </div>
 
+          {/* Position (move whole polygon) */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Posizione (centro)</Label>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Left %</span>
+                <NumberStepper
+                  value={Number(centroid.leftPct.toFixed(2))}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => movePolygon(v - centroid.leftPct, 0)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Top %</span>
+                <NumberStepper
+                  value={Number(centroid.topPct.toFixed(2))}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  onChange={v => movePolygon(0, v - centroid.topPct)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Linked Icons (multiple) */}
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">
