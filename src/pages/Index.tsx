@@ -66,7 +66,7 @@ function EditorLayout() {
           icon={Layers}
           collapsed={layersCollapsed}
           onToggle={() => setLayersCollapsed(v => !v)}
-          width="w-56"
+          width="w-44"
         >
           <LayerPanel
             selectedRoomId={selectedRoomId}
