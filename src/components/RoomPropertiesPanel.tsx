@@ -52,7 +52,7 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
   };
 
   return (
-    <div className="w-72 bg-card border-l border-border flex flex-col">
+    <div className="w-full h-full bg-card flex flex-col">
       <div className="p-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Proprietà Stanza</h2>
         <Button

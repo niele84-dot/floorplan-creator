@@ -34,7 +34,7 @@ export function PropertiesPanel() {
 
   if (!element) {
     return (
-      <div className="w-72 bg-card border-l border-border flex items-center justify-center p-4">
+      <div className="w-full h-full bg-card flex items-center justify-center p-4">
         <p className="text-xs text-muted-foreground text-center">
           Select an element on the canvas to edit its properties
         </p>
@@ -55,7 +55,7 @@ export function PropertiesPanel() {
   };
 
   return (
-    <div className="w-72 bg-card border-l border-border flex flex-col">
+    <div className="w-full h-full bg-card flex flex-col">
       <div className="p-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Properties</h2>
         <div className="flex gap-1">
