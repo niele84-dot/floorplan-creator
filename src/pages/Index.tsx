@@ -94,7 +94,7 @@ function EditorLayout() {
           icon={rightPanelIcon}
           collapsed={propsCollapsed}
           onToggle={() => setPropsCollapsed(v => !v)}
-          width="w-80"
+          width="w-72"
         >
           {showYaml ? (
             <YamlEditor />
