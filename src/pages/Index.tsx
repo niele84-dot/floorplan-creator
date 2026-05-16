@@ -55,7 +55,7 @@ function EditorLayout() {
           icon={Shapes}
           collapsed={iconsCollapsed}
           onToggle={() => setIconsCollapsed(v => !v)}
-          width="w-64"
+          width="w-52"
         >
           <IconPicker />
         </CollapsiblePanel>
