@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Link, Unlink, Info, Plus, Minus } from 'lucide-react';
+import { NumberStepper } from '@/components/ui/number-stepper';
 
 interface RoomPropertiesPanelProps {
   room: Room;
