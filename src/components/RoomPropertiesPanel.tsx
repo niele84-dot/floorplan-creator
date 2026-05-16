@@ -34,6 +34,23 @@ export function RoomPropertiesPanel({ room, onStartAddLink, onStartRemoveLink }:
     update({ linkedElementIds: linkedIds.filter(l => l !== id) });
   };
 
+  // Centroid (average of vertices) used as room position handle
+  const centroid = room.polygon.length > 0
+    ? {
+        leftPct: room.polygon.reduce((s, p) => s + p.leftPct, 0) / room.polygon.length,
+        topPct: room.polygon.reduce((s, p) => s + p.topPct, 0) / room.polygon.length,
+      }
+    : { leftPct: 50, topPct: 50 };
+
+  const movePolygon = (deltaLeft: number, deltaTop: number) => {
+    update({
+      polygon: room.polygon.map(p => ({
+        leftPct: Math.max(0, Math.min(100, p.leftPct + deltaLeft)),
+        topPct: Math.max(0, Math.min(100, p.topPct + deltaTop)),
+      })),
+    });
+  };
+
   return (
     <div className="w-72 bg-card border-l border-border flex flex-col">
       <div className="p-3 border-b border-border flex items-center justify-between">
