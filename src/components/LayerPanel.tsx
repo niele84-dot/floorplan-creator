@@ -43,11 +43,15 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId, isBackgroundSele
           </div>
         </div>
 
-        {rooms.length > 0 && (
-          <div className="px-2 pt-2">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">Stanze</span>
-            <div className="mt-1 space-y-0.5">
-              {rooms.map(room => (
+        <div className="px-2 pt-2">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
+            Stanze ({rooms.length})
+          </span>
+          <div className="mt-1 space-y-0.5">
+            {rooms.length === 0 ? (
+              <div className="px-2 py-1 text-[10px] text-muted-foreground italic">Nessuna stanza</div>
+            ) : (
+              rooms.map(room => (
                 <button
                   key={room.id}
                   onClick={() => {
@@ -67,10 +71,10 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId, isBackgroundSele
                   />
                   <span className="truncate">{room.name || 'Stanza'}</span>
                 </button>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
         {elements.length > 0 && (
           <div className="px-2 pt-2 pb-2">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">Elementi</span>
