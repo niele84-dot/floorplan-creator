@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ProjectProvider } from '@/contexts/ProjectContext';
 import { IconPicker } from '@/components/IconPicker';
 import { CanvasEditor } from '@/components/CanvasEditor';
