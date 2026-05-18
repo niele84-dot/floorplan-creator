@@ -694,7 +694,7 @@ export function CanvasEditor({
                     <div className="flex items-center justify-center min-w-[24px] min-h-[24px] p-1">
                       {el.ha.icon ? (
                         <img
-                          src={`https://api.iconify.design/${el.iconSetId || 'mdi'}/${el.iconName || el.ha.icon.replace('mdi:', '')}.svg?color=%2394a3b8`}
+                          src={`https://api.iconify.design/${el.iconSetId || 'mdi'}/${el.iconName || el.ha.icon.replace('mdi:', '')}.svg?color=%23${(el.color || '#94a3b8').replace('#','')}`}
                           alt={el.label || el.ha.icon}
                           className="w-full h-full"
                           draggable={false}
