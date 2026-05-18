@@ -150,8 +150,9 @@ export function generateYAML(project: FloorplanProject): string {
 
   // Room overlays first (render below icons)
   const rooms = project.rooms || [];
+  const isSvgBg = !!project.backgroundImage?.filename.toLowerCase().endsWith('.svg');
   for (const room of rooms) {
-    lines.push(generateRoomOverlayYAML(room, project.elements, '  '));
+    lines.push(generateRoomOverlayYAML(room, project.elements, '  ', isSvgBg));
   }
 
   // Then elements
