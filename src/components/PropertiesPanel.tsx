@@ -216,14 +216,43 @@ export function PropertiesPanel() {
 
           {/* Icon */}
           {element.ha.icon && (
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Icon</Label>
-              <Input
-                value={element.ha.icon}
-                onChange={e => updateHA({ icon: e.target.value })}
-                className="h-8 text-xs bg-secondary font-mono"
-              />
-            </div>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Icon</Label>
+                <Input
+                  value={element.ha.icon}
+                  onChange={e => updateHA({ icon: e.target.value })}
+                  className="h-8 text-xs bg-secondary font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Colore icona</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={element.color || '#94a3b8'}
+                    onChange={e => update({ color: e.target.value })}
+                    className="h-8 w-12 rounded border border-border bg-secondary cursor-pointer p-0.5"
+                  />
+                  <Input
+                    value={element.color || '#94a3b8'}
+                    onChange={e => update({ color: e.target.value })}
+                    placeholder="#94a3b8"
+                    className="h-8 text-xs bg-secondary font-mono flex-1"
+                  />
+                  {element.color && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-[10px]"
+                      onClick={() => update({ color: undefined })}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </>
           )}
 
           {/* Title */}
