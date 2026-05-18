@@ -30,6 +30,13 @@ function EditorLayout() {
     ? (project.rooms || []).find(r => r.id === selectedRoomId) || null
     : null;
 
+  // Sanity: clear selection if the room no longer exists (e.g. deleted)
+  useEffect(() => {
+    if (selectedRoomId && !(project.rooms || []).some(r => r.id === selectedRoomId)) {
+      setSelectedRoomId(null);
+    }
+  }, [project.rooms, selectedRoomId]);
+
   const handleSetSelectedRoomId = (id: string | null) => {
     setSelectedRoomId(id);
     if (id) setBackgroundSelected(false);
