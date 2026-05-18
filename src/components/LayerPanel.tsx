@@ -91,7 +91,7 @@ export function LayerPanel({ selectedRoomId, setSelectedRoomId, isBackgroundSele
                 >
                   {el.ha.icon ? (
                     <img
-                      src={`https://api.iconify.design/${el.iconSetId || 'mdi'}/${el.iconName || el.ha.icon.replace('mdi:', '')}.svg?color=%2394a3b8`}
+                      src={`https://api.iconify.design/${el.iconSetId || 'mdi'}/${el.iconName || el.ha.icon.replace('mdi:', '')}.svg?color=%23${(el.color || '#94a3b8').replace('#','')}`}
                       alt=""
                       className="w-3.5 h-3.5 flex-shrink-0"
                     />
