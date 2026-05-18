@@ -18,10 +18,13 @@ export function YamlEditor() {
   const generated = generateYAML(project);
 
   useEffect(() => {
-    if (!edited) {
-      setYaml(generated);
-    }
-  }, [generated, edited]);
+    // Always re-sync YAML with project state when the project changes externally
+    // (e.g. room/element added or deleted from side panels). This discards
+    // unapplied manual edits so the YAML always reflects the current project.
+    setYaml(generated);
+    setEdited(false);
+    setError(null);
+  }, [generated]);
 
   const handleChange = (value: string) => {
     setYaml(value);
