@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ProjectProvider } from '@/contexts/ProjectContext';
 import { IconPicker } from '@/components/IconPicker';
 import { CanvasEditor } from '@/components/CanvasEditor';
@@ -29,6 +29,13 @@ function EditorLayout() {
   const selectedRoom = selectedRoomId
     ? (project.rooms || []).find(r => r.id === selectedRoomId) || null
     : null;
+
+  // Sanity: clear selection if the room no longer exists (e.g. deleted)
+  useEffect(() => {
+    if (selectedRoomId && !(project.rooms || []).some(r => r.id === selectedRoomId)) {
+      setSelectedRoomId(null);
+    }
+  }, [project.rooms, selectedRoomId]);
 
   const handleSetSelectedRoomId = (id: string | null) => {
     setSelectedRoomId(id);
