@@ -105,7 +105,7 @@ function getLinkedTapAction(room: Room, elements: FloorplanElement[]): string {
   return '    action: toggle';
 }
 
-function generateRoomOverlayYAML(room: Room, elements: FloorplanElement[], indent: string): string {
+function generateRoomOverlayYAML(room: Room, elements: FloorplanElement[], indent: string, isSvgBg: boolean): string {
   const slug = room.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
   const entity = getLinkedEntity(room, elements);
   const lines: string[] = [];
@@ -121,16 +121,20 @@ function generateRoomOverlayYAML(room: Room, elements: FloorplanElement[], inden
   lines.push(`${indent}    "on": opacity(0.75)`);
   lines.push(`${indent}    "off": opacity(0)`);
   lines.push(`${indent}    "unavailable": opacity(0.15)`);
-  lines.push(`${indent}  tap_action:`);
-  const tapLines = getLinkedTapAction(room, elements);
-  for (const tl of tapLines.split('\n')) {
-    lines.push(`${indent}  ${tl}`);
+  if (isSvgBg) {
+    // Only when background is SVG, the room inherits the linked icon's tap action.
+    // For raster backgrounds the overlay is purely state-driven (appears when entity is on).
+    lines.push(`${indent}  tap_action:`);
+    const tapLines = getLinkedTapAction(room, elements);
+    for (const tl of tapLines.split('\n')) {
+      lines.push(`${indent}  ${tl}`);
+    }
   }
   lines.push(`${indent}  style:`);
   lines.push(`${indent}    top: "50%"`);
   lines.push(`${indent}    left: "50%"`);
   lines.push(`${indent}    width: "100%"`);
-  lines.push(`${indent}    pointer-events: auto`);
+  lines.push(`${indent}    pointer-events: ${isSvgBg ? 'auto' : 'none'}`);
 
   return lines.join('\n');
 }
