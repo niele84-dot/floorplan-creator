@@ -39,6 +39,8 @@ export interface FloorplanElement {
   iconSetId?: string;
   iconName?: string;
   label?: string;
+  color?: string; // hex color for icon tint, e.g. "#94a3b8"
+
 }
 
 export interface RoomPoint {
